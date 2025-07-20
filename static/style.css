@@ -1,0 +1,13 @@
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f5fa; margin:0; }
+.container { max-width: 1200px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(44,50,80,0.07); padding: 32px;}
+.header { background: linear-gradient(135deg, #466ae2 0%, #6ad3eb 100%); color:white; text-align:center; padding:24px; border-radius:8px;}
+h3 { margin-top:24px; }
+.section { margin:28px 0 32px 0; }
+.section table { width:100%; border-collapse:collapse; background:#fcfcfd; border-radius:9px;}
+th,td { padding: 10px 16px; }
+th { background:#e6f0fa; width:200px; text-align:left;}
+td { background: #f9fbfe; }
+.btn { background: linear-gradient(90deg,#466ae2 0%,#29c2d7 100%); color:white; border:none; border-radius:6px; padding:7px 14px; font-weight:600; margin:4px 0; cursor:pointer;}
+.btn:hover { background: #1e61ba;}
+.form-col { margin-bottom:12px;}
+input[type="file"]{margin:0 10px;}

@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="header">
+  <h2>MLS Point: {{ info['MLS_Point_Name'] }} ({{ info['MLS_Point_Code'] }})</h2>
+</div>
+<!-- Map showing location -->
+<div id="map" style="height:400px;width:100%;margin:16px 0 32px 0"></div>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+<script>
+  function showMap(lat, lng) {
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: parseFloat(lat), lng: parseFloat(lng)},
+      zoom: 15
+    });
+    new google.maps.Marker({position: {lat: parseFloat(lat), lng: parseFloat(lng)}, map: map});
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    showMap('{{ info["MLS_Point_Latitude"] }}', '{{ info["MLS_Point_Logitude"] }}');
+  });
+</script>
+<!-- Details Section: -->
+<div class="section">
+  <h3>MLS Point Details <form style="display:inline;" method="post"><button class="btn" style="display:inline;" type="submit">EDIT</button></form></h3>
+  <table>
+    <tr><th>Address</th><td>{{ info['MLS_Point_Address'] }}</td></tr>
+    <tr><th>Latitude</th><td>{{ info['MLS_Point_Latitude'] }}</td></tr>
+    <tr><th>Longitude</th><td>{{ info['MLS_Point_Logitude'] }}</td></tr>
+    <tr><th>Owned / Hired</th><td>{{ info['MLS_Point_Owned_or_Hired'] }}</td></tr>
+    <tr><th>Weighbridge</th><td>{{ info['Weighbridge_Available_Yes_No'] }}</td></tr>
+    <!-- Add more as needed -->
+  </table>
+</div>
+<div class="section">
+  <h3>Incharge Details
+    <form style="display:inline;" method="post" action="{{ url_for('ekyc_point', mls_code=mls_code, role='incharge') }}">
+      <button class="btn" type="submit">eKYC</button>
+    </form>
+    <form style="display:inline;" method="post"><button class="btn" type="submit">EDIT</button></form>
+  </h3>
+  <table>
+    <tr><th>Name</th><td>{{ info['MLS_Point_Incharge_Name'] }}</td></tr>
+    <tr><th>Designation</th><td>{{ info['Designation'] }}</td></tr>
+    <tr><th>Aadhaar Number</th><td>{{ info['Aadhaar_Number'] }}</td></tr>
+    <tr><th>Phone Number</th><td>{{ info['Phone_Number'] }}</td></tr>
+    <!-- Add more as needed -->
+  </table>
+</div>
+<div class="section">
+  <h3>DEO Details
+    <form style="display:inline;" method="post" action="{{ url_for('ekyc_point', mls_code=mls_code, role='deo') }}">
+      <button class="btn" type="submit">eKYC</button>
+    </form>
+    <form style="display:inline;" method="post"><button class="btn" type="submit">EDIT</button></form>
+  </h3>
+  <table>
+    <tr><th>Name</th><td>{{ info['DEO_Name'] }}</td></tr>
+    <tr><th>CFMS ID</th><td>{{ info['DEO_CFMS_ID_Corporation_Emp_ID'] }}</td></tr>
+    <tr><th>Aadhaar Number</th><td>{{ info['AadhaarNumber'] }}</td></tr>
+    <tr><th>Phone Number</th><td>{{ info['DEO_Phone_Number'] }}</td></tr>
+  </table>
+</div>
+<div class="section">
+  <h3>Godown Details <form style="display:inline;" method="post"><button class="btn" type="submit">EDIT</button></form></h3>
+  <table>
+    <tr><th>Area (Sq.Ft)</th><td>{{ info['Godown_Area_in_Sq_Ft'] }}</td></tr>
+    <tr><th>Storage Capacity</th><td>{{ info['Storage_Capacity_in'] }}</td></tr>
+    <tr><th>Entrance</th><td>{{ info.get('Entrance', '') }}</td></tr>
+    <!-- Add more fields as per your requirement -->
+  </table>
+</div>
+<div class="section">
+    <h3>CC Cameras & Camera IP Images</h3>
+    <table>
+      {% for cam, path in img_paths %}
+        <tr>
+          <th>Camera {{ cam }} IP</th>
+          <td>
+            <form method="post" action="{{ url_for('upload_camera', mls_code=mls_code, cam=cam) }}" enctype="multipart/form-data" style="display:inline;">
+                <input type="file" name="ipimage" accept="image/*">
+                <button class="btn" type="submit">Upload Pic</button>
+            </form>
+            {% if path %}<br><img src="{{ path }}" style="width:100px;">{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+</div>
+<div class="section">
+    <a class="btn" href="{{ url_for('download_pdf', mls_code=mls_code) }}">Download PDF</a>
+</div>
+{% endblock %}
