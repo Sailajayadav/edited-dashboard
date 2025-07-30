@@ -1,161 +1,201 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_file
-import os, json
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 from db_config import get_connection
-from werkzeug.utils import secure_filename
-from io import BytesIO
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
-UPLOAD_FOLDER = os.path.join('static', 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-USER_FILE = 'users.json'
 
-def get_users():
-    if not os.path.exists(USER_FILE):
-        with open(USER_FILE, 'w') as f: json.dump({}, f)
-    with open(USER_FILE) as f:
-        return json.load(f)
+# Correct column names based on actual table/CSV header, including spaces
+# These are the columns to display in the summary table
+SUMMARY_COLS = [
+    "MLS_Point_Code",
+    "MLS_Point_Name",
+    "Mandal_Name",
+    "District_Name",
+    "MLS_Point_Incharge_Name",
+    "Storage_Capacity_in" 
+]
 
-def fetch_df():
-    conn = get_connection()
-    df = pd.read_sql("SELECT * FROM dbo.MLS_Master_Data1", conn)
-    conn.close()
-    return df
+# Columns to use for dropdown filters
+FILTER_COLS = [
+    "District_Name",
+    "Mandal_Name",
+    "MLS_Point_Name",
+    "MLS_Point_Code"
+]
 
-@app.route('/')
-def home():
-    if "user" not in session:
-        return redirect(url_for('login'))
-    return redirect(url_for('dashboard'))
+def get_unique_values(column_name, filter_column=None, filter_value=None):
+    """
+    Fetches unique values for a given column from the dbo.MLS_Master_Data1 table.
+    Can optionally filter based on another column's value.
+    Handles column names with special characters by enclosing them in square brackets.
+    """
+    conn = None
+    try:
+        conn = get_connection()
+        # Enclose column name in square brackets for SQL Server if it contains spaces or other special characters
+        quoted_column_name = f"[{column_name}]" if any(char in column_name for char in [' ', '.', '-', '/', '\\', '(', ')', '[', ']']) else column_name
+        
+        query = f"SELECT DISTINCT {quoted_column_name} FROM dbo.MLS_Master_Data1"
+        params = []
+        
+        if filter_column and filter_value and filter_value != "All":
+            quoted_filter_column = f"[{filter_column}]" if any(char in filter_column for char in [' ', '.', '-', '/', '\\', '(', ')', '[', ']']) else filter_column
+            query += f" WHERE {quoted_filter_column} = ?"
+            params.append(filter_value)
+            
+        query += f" ORDER BY {quoted_column_name}"
 
-@app.route('/login', methods=['GET','POST'])
-def login():
+        df = pd.read_sql(query, conn, params=params)
+        # Convert to list, filtering out None/NaN values if any
+        return [str(val) for val in df.iloc[:, 0].dropna().unique()]
+    except Exception as e:
+        print(f"Error fetching unique values for {column_name} with filter {filter_column}={filter_value}: {e}")
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+def get_filtered_summary(district=None, mandal=None, mls_name=None, mls_code=None):
+    """
+    Fetches MLS summary data based on provided filter criteria.
+    Constructs a dynamic SQL WHERE clause.
+    """
+    conn = None
+    try:
+        conn = get_connection()
+        # Quote column names for SQL query if they contain special characters
+        select_cols_quoted = [
+            f"[{col}]" if any(char in col for char in [' ', '.', '-', '/', '\\', '(', ')', '[', ']']) else col
+            for col in SUMMARY_COLS
+        ]
+        query = f"SELECT {', '.join(select_cols_quoted)} FROM dbo.MLS_Master_Data1"
+        
+        conditions = []
+        params = []
+
+        if district and district != "All":
+            conditions.append("[District_Name] = ?")
+            params.append(district)
+        if mandal and mandal != "All":
+            conditions.append("[Mandal_Name] = ?")
+            params.append(mandal)
+        if mls_name and mls_name != "All":
+            conditions.append("[MLS_Point_Name] = ?")
+            params.append(mls_name)
+        if mls_code and mls_code != "All":
+            conditions.append("[MLS_Point_Code] = ?")
+            params.append(mls_code)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        df = pd.read_sql(query, conn, params=params)
+        return df
+    except Exception as e:
+        print(f"Error fetching filtered summary: {e}")
+        return pd.DataFrame(columns=SUMMARY_COLS) # Return empty DataFrame on error
+    finally:
+        if conn:
+            conn.close()
+
+def get_details(mls_code):
+    """
+    Fetches all details for a specific MLS point by its code.
+    """
+    conn = None
+    try:
+        conn = get_connection()
+        # Ensure MLS_Point_Code is correctly quoted in the query
+        df = pd.read_sql(
+            "SELECT * FROM dbo.MLS_Master_Data1 WHERE [MLS_Point_Code] = ?", conn, params=[mls_code]
+        )
+        return df.iloc[0].to_dict() if not df.empty else None
+    except Exception as e:
+        print(f"Error fetching details for MLS Point Code {mls_code}: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    # Get unique values for initial dropdowns
+    districts = get_unique_values("District_Name")
+    
+    # Initialize selected filters from form or default to "All"
+    selected_district = request.form.get('district_name', 'All')
+    selected_mandal = request.form.get('mandal_name', 'All')
+    selected_mls_name = request.form.get('mls_point_name', 'All')
+    selected_mls_code = request.form.get('mls_point_code', 'All')
+
+    # Dynamically get mandals based on selected_district
+    mandals = get_unique_values("Mandal_Name", "District_Name", selected_district)
+    
+    # Dynamically get MLS names based on selected_mandal (which is influenced by selected_district)
+    mls_names = get_unique_values("MLS_Point_Name", "Mandal_Name", selected_mandal)
+    mls_codes = get_unique_values("MLS_Point_Code", "Mandal_Name", selected_mandal)
+
+
     if request.method == 'POST':
-        email = request.form['email'].lower()
-        password = request.form['password']
-        users = get_users()
-        if email in users and users[email] == password:
-            session["user"] = email
-            return redirect(url_for('dashboard'))
-        flash('Invalid credentials')
-    return render_template('login.html')
+        # Fetch filtered records based on all selected criteria
+        records_df = get_filtered_summary(
+            selected_district,
+            selected_mandal,
+            selected_mls_name,
+            selected_mls_code
+        )
+    else:
+        # On initial GET request, fetch all records
+        records_df = get_filtered_summary() # Call without filters to get all
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        email = request.form['email'].lower()
-        password = request.form['password']
-        users = get_users()
-        if email in users:
-            flash('User already exists')
-        else:
-            users[email] = password
-            with open(USER_FILE, 'w') as f: json.dump(users, f)
-            flash('Signup successful! Please log in.')
-            return redirect(url_for('login'))
-    return render_template('signup.html')
+    # Convert DataFrame to a list of dictionaries for Jinja2 template
+    records = records_df.to_dict(orient="records")
 
-@app.route('/logout')
-def logout():
-    session.pop("user", None)
-    return redirect(url_for('login'))
+    return render_template(
+        "index.html",
+        records=records,
+        districts=districts,
+        mandals=mandals,
+        mls_names=mls_names,
+        mls_codes=mls_codes,
+        selected_district=selected_district,
+        selected_mandal=selected_mandal,
+        selected_mls_name=selected_mls_name,
+        selected_mls_code=selected_mls_code
+    )
 
-@app.route('/dashboard')
-def dashboard():
-    if "user" not in session:
-        return redirect(url_for("login"))
-    return render_template('dashboard.html')
+@app.route('/get_mandals/<district_name>')
+def get_mandals_for_district(district_name):
+    """
+    API endpoint to return mandals based on the selected district.
+    """
+    mandals = get_unique_values("Mandal_Name", "District_Name", district_name)
+    return jsonify(mandals)
 
-@app.route('/api/districts')
-def api_districts():
-    df = fetch_df()
-    districts = df['District_Name'].dropna().unique().tolist()
-    return jsonify(sorted(districts))
+@app.route('/get_mls_points/<mandal_name>')
+def get_mls_points_for_mandal(mandal_name):
+    """
+    API endpoint to return MLS Point Names based on the selected mandal.
+    """
+    mls_points = get_unique_values("MLS_Point_Name", "Mandal_Name", mandal_name)
+    return jsonify(mls_points)
 
-@app.route('/api/mandals')
-def api_mandals():
-    district = request.args.get('district')
-    df = fetch_df()
-    mandals = df[df['District_Name'] == district]['Mandal_Name'].dropna().unique().tolist()
-    return jsonify(sorted(mandals))
+@app.route('/get_mls_codes/<mandal_name>')
+def get_mls_codes_for_mandal(mandal_name):
+    """
+    API endpoint to return MLS Point Codes based on the selected mandal.
+    """
+    mls_codes = get_unique_values("MLS_Point_Code", "Mandal_Name", mandal_name)
+    return jsonify(mls_codes)
 
-@app.route('/api/mls_point_by_district_mandal')
-def api_mls_point_by_district_mandal():
-    district = request.args.get('district', '').strip().lower()
-    mandal = request.args.get('mandal', '').strip().lower()
-    df = fetch_df()
-    # Normalize columns for comparison
-    df['District_Name_norm'] = df['District_Name'].astype(str).str.strip().str.lower()
-    df['Mandal_Name_norm'] = df['Mandal_Name'].astype(str).str.strip().str.lower()
-    subset = df[(df['District_Name_norm'] == district) & (df['Mandal_Name_norm'] == mandal)]
-    if subset.empty:
-        return jsonify({"error": "No MLS Point found for this District & Mandal"}), 404
-    data = subset.iloc[0].to_dict()
-    return jsonify(data)
 
-@app.route('/detail/<mls_code>', methods=['GET', 'POST'])
-def mls_detail(mls_code):
-    if "user" not in session:
-        return redirect(url_for("login"))
-    df = fetch_df()
-    row = df[df['MLS_Point_Code'] == mls_code]
-    if row.empty: return "MLS Point Not Found", 404
-    info = row.iloc[0].to_dict()
-    # Edit handling (simulate in-memory for demo)
-    if request.method == 'POST':
-        # Here you'd update the DB with the POSTed fields
-        flash('Changes saved (demo; add real DB update logic here)')
-        return redirect(url_for('mls_detail', mls_code=mls_code))
-    img_paths = []
-    for cam in range(1, 9):  # Up to 8 camera IPs
-        ip_img = f"{mls_code}_cam{cam}.jpg"
-        if os.path.exists(os.path.join(UPLOAD_FOLDER, ip_img)):
-            img_paths.append((cam, url_for('static', filename=f"uploads/{ip_img}")))
-        else:
-            img_paths.append((cam, None))
-    return render_template('mls_detail.html', info=info, mls_code=mls_code, img_paths=img_paths)
-
-@app.route('/upload_camera/<mls_code>/<int:cam>', methods=['POST'])
-def upload_camera(mls_code, cam):
-    file = request.files.get('ipimage')
-    if file:
-        filename = secure_filename(f"{mls_code}_cam{cam}.jpg")
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
-        flash(f'Camera {cam} image uploaded!')
-    return redirect(url_for('mls_detail', mls_code=mls_code))
-
-@app.route('/ekyc/<mls_code>/<role>', methods=['POST'])
-def ekyc_point(mls_code, role):
-    # "role" is either 'incharge' or 'deo'
-    flash(f"eKYC process triggered for {role.upper()} (Demo!)")
-    return redirect(url_for('mls_detail', mls_code=mls_code))
-
-@app.route('/download_pdf/<mls_code>')
-def download_pdf(mls_code):
-    from reportlab.lib.pagesizes import letter
-    from reportlab.pdfgen import canvas
-    df = fetch_df()
-    row = df[df['MLS_Point_Code'] == mls_code]
-    buffer = BytesIO()
-    if row.empty:
-        buffer.write(b"Not Found"); buffer.seek(0)
-        return send_file(buffer, as_attachment=True, download_name="NotFound.pdf", mimetype='application/pdf')
-    c = canvas.Canvas(buffer, pagesize=letter)
-    info = row.iloc[0].to_dict()
-    y = 750
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, y, f"MLS Point Dashboard")
-    y -= 25
-    c.setFont("Helvetica", 11)
-    for k, v in info.items():
-        c.drawString(50, y, f"{k}: {v}")
-        y -= 15
-        if y < 60:
-            c.showPage(); y = 750
-    c.save()
-    buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name=f"MLS_{mls_code}_dashboard.pdf", mimetype='application/pdf')
+@app.route('/details/<mls_code>') 
+def details(mls_code):
+    info = get_details(mls_code)
+    if not info:
+        return "No details found", 404
+    return render_template("details.html", info=info)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
