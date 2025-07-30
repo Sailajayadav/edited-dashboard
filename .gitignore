@@ -1,2 +1,7 @@
 venv/
 venv/pyvenv.cfg
+__pycache__/
+*.pyc
+*.log
+.env
+
