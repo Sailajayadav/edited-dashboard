@@ -1,13 +1,564 @@
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f5fa; margin:0; }
-.container { max-width: 1200px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(44,50,80,0.07); padding: 32px;}
-.header { background: linear-gradient(135deg, #466ae2 0%, #6ad3eb 100%); color:white; text-align:center; padding:24px; border-radius:8px;}
-h3 { margin-top:24px; }
-.section { margin:28px 0 32px 0; }
-.section table { width:100%; border-collapse:collapse; background:#fcfcfd; border-radius:9px;}
-th,td { padding: 10px 16px; }
-th { background:#e6f0fa; width:200px; text-align:left;}
-td { background: #f9fbfe; }
-.btn { background: linear-gradient(90deg,#466ae2 0%,#29c2d7 100%); color:white; border:none; border-radius:6px; padding:7px 14px; font-weight:600; margin:4px 0; cursor:pointer;}
-.btn:hover { background: #1e61ba;}
-.form-col { margin-bottom:12px;}
-input[type="file"]{margin:0 10px;}
+/* Dashboard/static/style.css */
+
+/* --- YOUR ORIGINAL CSS (Primarily for index.html) --- */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.header h1 {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.header p {
+    color: #7f8c8d;
+    font-size: 1.1em;
+}
+
+/* Filter Form Styles */
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #ecf0f1;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #34495e;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 1em;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2334495e%22%20d%3D%22M287%2C197.4L159.9%2C69.8c-3-3-7.9-3-10.9,0L5.4%2C197.4c-3,3-3,7.9,0,10.9l19.2,19.2c3,3,7.9,3,10.9,0l114.4-114.4l114.4,114.4c3,3,7.9,3,10.9,0l19.2-19.2C290,205.3,290,200.4,287,197.4z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 12px;
+    cursor: pointer;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    align-self: flex-end;
+}
+
+.filter-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Table Styles (for index.html) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #4a69bd;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+table tbody tr:hover {
+    background-color: #f1f1f1;
+    transition: background-color 0.3s ease;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #2ecc71;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #27ae60;
+}
+
+/* Details Page Specific Styles (for original details.html, can be kept) */
+.details-panel {
+    background-color: #ecf0f1;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #ccc;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #34495e;
+    flex-basis: 40%;
+}
+
+.detail-value {
+    color: #555;
+    flex-basis: 58%;
+    text-align: right;
+}
+
+.no-records {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 1.2em;
+    padding: 40px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    margin-top: 30px;
+}
+
+
+/* --- NEW STYLES FOR AT_A_GLANCE.HTML (Override/Complement Tailwind/Original CSS) --- */
+/* These rules should come AFTER your original CSS to ensure they take precedence */
+
+/* Overrides body font from original style.css and ensures background color for glance template */
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    background: #f5f6fa; /* Lighter background for the multi-page layout */
+}
+
+/* Specific styling for the .page containers in at_a_glance.html */
+.page {
+    background: #fff;
+    border: 1.5px solid #333;
+    margin: 32px auto;
+    padding: 24px 18px 18px 18px;
+    max-width: 900px; /* Standard page width */
+    min-height: 1200px; /* Minimum height to simulate pages */
+    box-sizing: border-box;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative; /* For the absolute PDF button if needed here */
+}
+.page-wide {
+    max-width: 1400px; /* Wider page for the 6-month stock table */
+    min-height: 900px;
+}
+
+/* Header for each section within the .page */
+.section-header {
+    background: #1757A6; /* Consistent blue background */
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0.25rem 1rem;
+    display: flex;
+    align-items: center;
+    border-radius: 3px 3px 0 0;
+    border: 1.5px solid #1757A6;
+    border-bottom: none;
+    flex-wrap: wrap; /* Allows text and buttons to wrap */
+}
+.section-header .icon {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+/* General styling for action buttons within the sections (EDIT, UPLOAD, eKYC, OTP, ADD) */
+.edit-btn, .upload-btn, .ekyc-btn, .otp-btn, .add-btn {
+    border: 1px solid #1757A6;
+    color: #1757A6;
+    background: #fff;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    padding: 0.1rem 0.7rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: none;
+    transition: all 0.2s ease-in-out; /* Added transition */
+    white-space: nowrap; /* Prevent button text from wrapping */
+}
+.edit-btn:hover, .upload-btn:hover, .ekyc-btn:hover, .otp-btn:hover, .add-btn:hover {
+    background: #e0f0ff; /* Light blue on hover for these buttons */
+}
+/* Ensure ml-auto works with flexbox */
+.page .section-header .ml-auto {
+    margin-left: auto !important;
+}
+
+/* Photo box for Incharge/DEO/Contractor */
+.photo-box {
+    border: 1px solid #1757A6;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #1757A6;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Placeholder for images */
+.img-placeholder {
+    font-size: 1.5rem;
+    color: #bdbdbd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 80px; /* Ensure cells are tall enough for icon */
+}
+
+/* Table styling for the .page template (overrides original table styles) */
+.page table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.1rem; /* Consistent spacing */
+    table-layout: fixed; /* For fixed column widths defined below */
+    border-radius: 3px;
+    box-shadow: none; /* Remove shadow, as the .page container has it */
+    overflow: hidden; /* Ensures borders/bg are contained */
+}
+
+.page table th, .page table td {
+    border: 1px solid #333;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.97rem;
+    min-height: 28px;
+    height: 28px; /* Fixed height for consistent rows */
+    background: #fff;
+    vertical-align: top;
+    text-align: left; /* Ensure left alignment */
+}
+.page table th {
+    background: #f5f6fa;
+    font-weight: 600;
+    color: #333; /* Darker text for headers on white background */
+    text-transform: none; /* No uppercase for these headers */
+}
+.page table tbody tr:nth-child(even) {
+    background-color: #fff; /* Keep white for all rows unless specific need */
+}
+.page table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+/* Specific column widths for tables within the .page */
+.table-col-7 th, .table-col-7 td { width: calc(100% / 7); }
+.table-col-6 th, .table-col-6 td { width: calc(100% / 6); }
+.table-col-4 th, .table-col-4 td { width: calc(100% / 4); }
+.table-col-2 th, .table-col-2 td { width: calc(100% / 2); }
+
+/* Custom widths for Current Month Commodity Details table */
+.table-commodities th:nth-child(1), .table-commodities td:nth-child(1) { width: 7%; } /* SL No */
+.table-commodities th:nth-child(2), .table-commodities td:nth-child(2) { width: 23%; } /* Commodity */
+.table-commodities th:nth-child(n+3), .table-commodities td:nth-child(n+3) { width: 14%; } /* Rest of columns */
+
+/* Styles for Past Six months Stock Movement Details table */
+.table-stock th, .table-stock td {
+    font-size: 0.93rem;
+    padding: 0.15rem 0.3rem;
+    min-height: 24px;
+    height: 24px;
+}
+.table-stock th {
+    font-size: 1rem;
+}
+
+/* Specific button styles (like the blue ones on page 2+) */
+.page button.ml-3 { /* Targeting the blue "EDIT" buttons next to section headers on page 2+ */
+    background-color: #2563eb; /* bg-blue-600 */
+    color: white;
+    border: none; /* Override default border */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 0.25rem 0.75rem; /* px-3 py-1 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease;
+}
+.page button.ml-3:hover {
+    background-color: #1d4ed8; /* hover:bg-blue-700 */
+}
+
+/* eKYC/OTP buttons in Stage II Contractor Details */
+.page button.px-2.py-0\.5 {
+    background-color: #eff6ff; /* bg-blue-50 */
+    color: #1e40af; /* text-blue-700 */
+    border-radius: 0.25rem; /* rounded */
+    border: 1px solid #bfdbfe; /* border border-blue-200 */
+    padding: 0.125rem 0.5rem;
+    transition: background-color 0.2s ease;
+}
+.page button.px-2.py-0\.5:hover {
+    background-color: #dbeafe; /* hover:bg-blue-100 */
+}
+
+/* "Add for more" button */
+.page button.block.mx-auto {
+    background-color: #eff6ff; /* bg-blue-50 */
+    color: #1e40af; /* text-blue-700 */
+    border-radius: 0.5rem; /* rounded-lg */
+    border: 1px solid #bfdbfe; /* border border-blue-200 */
+    padding: 0.25rem 1rem; /* px-4 py-1 */
+    transition: background-color 0.2s ease;
+}
+.page button.block.mx-auto:hover {
+    background-color: #dbeafe; /* hover:bg-blue-100 */
+}
+
+/* Upload button for layout section */
+.page .upload-btn.ml-3 { /* Targeting the specific upload button next to section header */
+    background-color: #eff6ff;
+    color: #1e40af;
+    border-radius: 0.5rem;
+    border: 1px solid #bfdbfe;
+    padding: 0.25rem 0.75rem;
+    transition: background-color 0.2s ease;
+}
+.page .upload-btn.ml-3:hover {
+    background-color: #dbeafe;
+}
+
+/* PDF Download Button */
+.pdf-download-button {
+    background-color: #2ecc71; /* Green color */
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 0.5rem; /* rounded */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-lg */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* For padding and box-shadow */
+    transition: background-color 0.3s ease;
+}
+.pdf-download-button:hover {
+    background-color: #27ae60; /* Darker green on hover */
+}
+
+
+/* --- NEW STYLES FOR INLINE EDITING --- */
+.edit-form-field {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Spacing between input and buttons */
+    width: 100%;
+}
+.edit-form-field input {
+    flex-grow: 1; /* Input takes available space */
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+.save-btn, .cancel-btn {
+    padding: 0.1rem 0.7rem;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: none;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+    margin-left: 0; /* Override default margin if inherited */
+}
+.save-btn {
+    background-color: #2ecc71; /* Green for Save */
+    color: white;
+    border: 1px solid #2ecc71;
+}
+.save-btn:hover {
+    background-color: #27ae60;
+}
+.cancel-btn {
+    background-color: #e74c3c; /* Red for Cancel */
+    color: white;
+    border: 1px solid #e74c3c;
+}
+.cancel-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Classes to toggle display modes */
+.edit-mode {
+    display: none; /* Hidden by default */
+}
+.display-mode {
+    display: block; /* Shown by default */
+}
+
+/* When the parent row has 'editing' class, hide display and show edit form */
+#mls_address_row.editing .edit-btn {
+    display: none !important; /* Hide original EDIT button */
+}
+#mls_address_row.editing .display-mode {
+    display: none !important; /* Hide static text */
+}
+#mls_address_row.editing .edit-mode {
+    display: flex !important; /* Show the form (use flex for internal alignment) */
+}
+
+
+/* Responsive adjustments (Your original responsive styles + any new ones) */
+@media (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .filter-btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    /* Apply responsive styles to tables in both index.html and at_a_glance.html */
+    table, .page table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    table tr, .page table tr {
+        border: 1px solid #ddd;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    table td, .page table td {
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+    }
+
+    table td:before, .page table td:before {
+        position: absolute;
+        top: 12px;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        content: attr(data-label);
+        font-weight: bold;
+        color: #34495e;
+        text-align: left;
+    }
+
+    /* Assign data-label to each td for responsive table headers for index.html */
+    table td:nth-of-type(1):before { content: "MLS Point Code"; }
+    table td:nth-of-type(2):before { content: "Name"; }
+    table td:nth-of-type(3):before { content: "Mandal"; }
+    table td:nth-of-type(4):before { content: "District"; }
+    table td:nth-of-type(5):before { content: "Incharge"; }
+    table td:nth-of-type(6):before { content: "Storage Capacity"; }
+    table td:nth-of-type(7):before { content: "Details"; }
+
+    /* For at_a_glance.html tables, you'd need data-labels too if they are responsive */
+    /* This can be extensive if you want all tables to be fully responsive like index.html */
+    /* Example for MLS Point Details table: */
+    #mls_address_row td:nth-of-type(1):before { content: "MLS Point Code"; }
+    #mls_address_row td:nth-of-type(2):before { content: "MLS Point Name"; }
+    /* ... add for other cells in at_a_glance tables if desired ... */
+
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .detail-label, .detail-value {
+        flex-basis: auto;
+        width: 100%;
+        text-align: left;
+    }
+
+    .detail-value {
+        padding-top: 5px;
+        word-wrap: break-word;
+    }
+}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLS Point Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container" style="max-width:900px;">
+    <div class="header" style="margin-bottom:30px;">
+        <h1>{{ info['MLS_Point_Name'] }}</h1>
+        <p>MLS Point Code: {{ info['MLS_Point_Code'] }}</p>
+    </div>
+    <div class="details-panel">
+        {% for key, value in info.items() %}
+        <div class="detail-item">
+            <span class="detail-label">{{ key }}</span>
+            <span class="detail-value">{{ value }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div style="margin-top:30px;">
+        <a class="btn" href="{{ url_for('index') }}">← Back to Overview</a>
+    </div>
+</div>
+</body>
+</html>

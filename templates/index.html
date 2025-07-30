@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLS Point Locator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>MLS Point Locator</h1>
+        <p>Find and explore MLS points across districts and mandals</p>
+    </div>
+
+    <form method="POST" action="/" class="filter-form">
+        <div class="filter-group">
+            <label for="district_name">District:</label>
+            <select name="district_name" id="district_name">
+                <option value="All">All Districts</option>
+                {% for district in districts %}
+                <option value="{{ district }}" {% if selected_district == district %}selected{% endif %}>{{ district }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="mandal_name">Mandal:</label>
+            <select name="mandal_name" id="mandal_name">
+                <option value="All">All Mandals</option>
+                {# Mandals will be dynamically loaded by JavaScript #}
+                {% for mandal in mandals %}
+                <option value="{{ mandal }}" {% if selected_mandal == mandal %}selected{% endif %}>{{ mandal }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="mls_point_name">MLS Point Name:</label>
+            <select name="mls_point_name" id="mls_point_name">
+                <option value="All">All MLS Points</option>
+                {# MLS Point Names will be dynamically loaded by JavaScript #}
+                {% for name in mls_names %}
+                <option value="{{ name }}" {% if selected_mls_name == name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="mls_point_code">MLS Point Code:</label>
+            <select name="mls_point_code" id="mls_point_code">
+                <option value="All">All Codes</option>
+                {# MLS Point Codes will be dynamically loaded by JavaScript #}
+                {% for code in mls_codes %}
+                <option value="{{ code }}" {% if selected_mls_code == code %}selected{% endif %}>{{ code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn filter-btn">Apply Filters</button>
+    </form>
+
+    <div style="padding:32px 0 0 0">
+        {% if records %}
+        <table>
+            <thead>
+                <tr>
+                    <th>MLS Point Code</th>
+                    <th>Name</th>
+                    <th>Mandal</th>
+                    <th>District</th>
+                    <th>Incharge</th>
+                    <th>Storage Capacity</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in records %}
+                <tr>
+                    <td data-label="MLS Point Code">{{ row['MLS_Point_Code'] }}</td>
+                    <td data-label="Name">{{ row['MLS_Point_Name'] }}</td>
+                    <td data-label="Mandal">{{ row['Mandal_Name'] }}</td>
+                    <td data-label="District">{{ row['District_Name'] }}</td>
+                    <td data-label="Incharge">{{ row['MLS_Point_Incharge_Name'] }}</td>
+                    <td data-label="Storage Capacity">{{ row['Storage_Capacity_in'] }}</td>
+                    <td data-label="Details">
+                        <a class="btn" href="{{ url_for('details', mls_code=row['MLS_Point_Code']) }}">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-records">No records found matching your criteria.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const districtSelect = document.getElementById('district_name');
+        const mandalSelect = document.getElementById('mandal_name');
+        const mlsNameSelect = document.getElementById('mls_point_name');
+        const mlsCodeSelect = document.getElementById('mls_point_code');
+
+        // Function to populate a dropdown
+        async function populateDropdown(selectElement, data, selectedValue = 'All') {
+            selectElement.innerHTML = `<option value="All">All ${selectElement.id.replace(/_/g, ' ').replace('name', '').trim() || 'Options'}</option>`;
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                if (item === selectedValue) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Event listener for District dropdown change
+        districtSelect.addEventListener('change', async function() {
+            const selectedDistrict = this.value;
+            
+            // Fetch and populate Mandals
+            if (selectedDistrict !== 'All') {
+                const response = await fetch(`/get_mandals/${selectedDistrict}`);
+                const mandals = await response.json();
+                populateDropdown(mandalSelect, mandals);
+            } else {
+                // If "All Districts" is selected, fetch all mandals
+                const response = await fetch(`/get_mandals/All`); 
+                const mandals = await response.json();
+                populateDropdown(mandalSelect, mandals);
+            }
+            
+            // Reset and re-populate MLS Name and Code dropdowns based on the new mandal selection
+            // Trigger change event on mandalSelect to update MLS Points/Codes
+            mandalSelect.dispatchEvent(new Event('change'));
+        });
+
+        // Event listener for Mandal dropdown change
+        mandalSelect.addEventListener('change', async function() {
+            const selectedMandal = this.value;
+
+            // Fetch and populate MLS Point Names
+            if (selectedMandal !== 'All') {
+                const nameResponse = await fetch(`/get_mls_points/${selectedMandal}`);
+                const mlsNames = await nameResponse.json();
+                populateDropdown(mlsNameSelect, mlsNames);
+
+                // Fetch and populate MLS Point Codes
+                const codeResponse = await fetch(`/get_mls_codes/${selectedMandal}`);
+                const mlsCodes = await codeResponse.json();
+                populateDropdown(mlsCodeSelect, mlsCodes);
+            } else {
+                // If "All Mandals" is selected, fetch all MLS Names and Codes (not filtered by mandal)
+               
+                const nameResponse = await fetch(`/get_mls_points/All`); 
+                const mlsNames = await nameResponse.json();
+                populateDropdown(mlsNameSelect, mlsNames);
+
+                const codeResponse = await fetch(`/get_mls_codes/All`); 
+                const mlsCodes = await codeResponse.json();
+                populateDropdown(mlsCodeSelect, mlsCodes);
+            }
+        });
+
+        // Initial population on page load
+        // Ensure mandals are correctly populated based on the initially selected district (if any)
+        // This handles cases where the user navigates back or the page is rendered with a pre-selected district
+        if (districtSelect.value !== 'All') {
+            districtSelect.dispatchEvent(new Event('change'));
+        } else {
+            // If no district is selected initially, ensure all mandals, mls names, and codes are loaded
+            mandalSelect.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+</body>
+</html>
