@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLS Point Details Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for details page */
+        /* These styles enhance Tailwind's utility classes or provide complex layouts */
+        body {
+            font-family: 'Inter', sans-serif; /* Example font */
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto; /* Tailwind my-8 mx-auto */
+            background-color: #ffffff; /* Tailwind white */
+            padding: 2rem; /* Tailwind p-8 */
+            border-radius: 0.75rem; /* Tailwind rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-xl */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb; /* Tailwind border-gray-200 */
+            /* Sticky Header Styles */
+            position: sticky;
+            top: 0;
+            z-index: 20; /* Ensure it stays on top of other content */
+            background-color: #ffffff; /* Must have a background to hide scrolling content */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: add shadow to lift it */
+        }
+        .header h1 {
+            color: #1f2937; /* Tailwind gray-900 */
+            font-size: 2.25rem; /* Tailwind text-4xl */
+            font-weight: 700; /* Tailwind font-bold */
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            color: #6b7280; /* Tailwind gray-500 */
+            font-size: 1rem; /* Tailwind text-base */
+        }
+
+        /* Details Panel Grid Layout */
+        .details-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+            gap: 1.5rem; /* Tailwind gap-6 */
+            padding: 1.5rem;
+            border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            background-color: #f9fafb; /* Tailwind gray-50 */
+        }
+
+        /* Individual Detail Item */
+        .detail-item {
+            display: flex;
+            flex-direction: column; /* Stack label and value */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
+            position: relative; /* For button positioning */
+        }
+        .detail-label {
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #4b5563; /* Tailwind gray-700 */
+            font-size: 0.875rem; /* Tailwind text-sm */
+            margin-bottom: 0.25rem;
+        }
+        .detail-value {
+            color: #1f2937; /* Tailwind gray-900 */
+            font-size: 1.125rem; /* Tailwind text-lg */
+            min-height: 1.5rem; /* Ensure consistent height */
+        }
+        .detail-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            font-size: 1.125rem; /* Match detail-value font size */
+            background-color: #f9fafb; /* Tailwind gray-50 */
+            color: #1f2937;
+            box-sizing: border-box; /* Include padding/border in width */
+        }
+        .detail-input:focus {
+            outline: none;
+            border-color: #2563eb; /* Tailwind blue-600 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* Tailwind ring-blue-500/50 */
+        }
+
+        /* Buttons within detail item */
+        .detail-actions {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-icon {
+            padding: 0.375rem; /* Tailwind p-1.5 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+            display: flex; /* For centering SVG/icon */
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon svg {
+            width: 1.25rem; /* Tailwind w-5 */
+            height: 1.25rem; /* Tailwind h-5 */
+        }
+        .btn-edit {
+            background-color: #e0e7ff; /* Tailwind indigo-100 */
+            color: #4f46e5; /* Tailwind indigo-600 */
+        }
+        .btn-edit:hover {
+            background-color: #c7d2fe; /* Tailwind indigo-200 */
+        }
+        .btn-save-field {
+            background-color: #dcfce7; /* Tailwind green-100 */
+            color: #16a34a; /* Tailwind green-600 */
+        }
+        .btn-save-field:hover {
+            background-color: #bbf7d0; /* Tailwind green-200 */
+        }
+        .btn-cancel-field {
+            background-color: #fee2e2; /* Tailwind red-100 */
+            color: #dc2626; /* Tailwind red-600 */
+        }
+        .btn-cancel-field:hover {
+            background-color: #fecaca; /* Tailwind red-200 */
+        }
+
+        /* Global action buttons */
+        .global-actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end; /* Align to right */
+            gap: 1rem; /* Tailwind gap-4 */
+        }
+        .btn-global {
+            padding: 0.75rem 1.5rem; /* Tailwind px-6 py-3 */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            font-weight: 600; /* Tailwind font-semibold */
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-save-all {
+            background-color: #22c55e; /* Tailwind green-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
+        }
+        .btn-save-all:hover {
+            background-color: #16a34a; /* Tailwind green-600 */
+        }
+        .btn-cancel-all {
+            background-color: #ef4444; /* Tailwind red-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-cancel-all:hover {
+            background-color: #dc2626; /* Tailwind red-600 */
+        }
+        .btn-back {
+            background-color: #6b7280; /* Tailwind gray-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            text-decoration: none; /* For anchor tag */
+            display: inline-flex; /* To align icon/text */
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-back:hover {
+            background-color: #4b5563; /* Tailwind gray-600 */
+        }
+
+        /* Message styling */
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            display: none;
+            text-align: center;
+        }
+        .message.success {
+            background-color: #dcfce7; /* Tailwind green-100 */
+            color: #16a34a; /* Tailwind green-600 */
+            border: 1px solid #bbf7d0; /* Tailwind green-200 */
+        }
+        .message.error {
+            background-color: #fee2e2; /* Tailwind red-100 */
+            color: #dc2626; /* Tailwind red-600 */
+            border: 1px solid #fecaca; /* Tailwind red-200 */
+        }
+        .message.info {
+            background-color: #e0f2fe; /* Tailwind blue-100 */
+            color: #2563eb; /* Tailwind blue-600 */
+            border: 1px solid #bfdbfe; /* Tailwind blue-200 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+<div class="container">
+    <div class="header">
+        <h1>{{ info['MLS_Point_Name'] if info.get('MLS_Point_Name') else 'N/A' }}</h1>
+        <p class="text-gray-500">MLS Point Code: {{ info['MLS_Point_Code'] if info.get('MLS_Point_Code') else 'N/A' }}</p>
+    </div>
+
+    <div id="message-area" class="message"></div>
+
+    <div class="details-panel" data-mls-code="{{ info['MLS_Point_Code'] }}">
+        {% for key in info.keys() %}
+            {# Clean up key for display to match screenshot. #}
+            {% set display_key = key.replace('_', ' ').replace('in', '').replace('Pot', 'Point').replace('CFMS Corporation EMP', 'CFMS/EMP').replace('S No', 'S No') %}
+            {% set value = info[key] %}
+            <div class="detail-item" data-column="{{ key }}">
+                <span class="detail-label">{{ display_key }}:</span>
+                {# Check if the column is in EDITABLE_COLS and not primary/static keys #}
+                {% if key in editable_cols and key not in ['MLS_Point_Code', 'S_No'] %}
+                    <span class="detail-value text-lg" data-original-value="{{ value if value is not none else '' }}">
+                        {{ value if value is not none else '' }}
+                    </span>
+                    <input type="text" class="detail-input hidden" value="{{ value if value is not none else '' }}">
+                    <div class="detail-actions">
+                        <button class="btn-icon btn-edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14.25v4.5m-6.75-6.75h.008v.008H12v-.008z" />
+                            </svg>
+                        </button>
+                        <button class="btn-icon btn-save-field hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                        </button>
+                        <button class="btn-icon btn-cancel-field hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                {% else %}
+                    <span class="detail-value text-lg">
+                        {{ value if value is not none else '' }}
+                    </span>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="global-actions">
+        <button id="save-all-btn" class="btn-global btn-save-all hidden">Save All Changes</button>
+        <button id="cancel-all-btn" class="btn-global btn-cancel-all hidden">Cancel All Changes</button>
+        <a class="btn-back" href="{{ url_for('index') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Back to Overview
+        </a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DEBUG: JavaScript is running on details page!"); 
+
+        const detailsPanel = document.querySelector('.details-panel');
+        const mlsPointCode = detailsPanel ? detailsPanel.dataset.mlsCode : null;
+        const messageArea = document.getElementById('message-area');
+        const saveAllBtn = document.getElementById('save-all-btn');
+        const cancelAllBtn = document.getElementById('cancel-all-btn');
+
+        // Map to store original values and track changes: {columnName: {element: spanElement, inputElement: inputElement, originalValue: '...', isChanged: true/false}}
+        const changedFields = new Map();
+
+        function showMessage(message, type) {
+            messageArea.textContent = message;
+            messageArea.className = `message ${type}`;
+            messageArea.style.display = 'block';
+            setTimeout(() => {
+                messageArea.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateGlobalButtonsVisibility() {
+            // Check if any field's isChanged flag is true
+            const hasPendingChanges = Array.from(changedFields.values()).some(field => field.isChanged);
+            if (hasPendingChanges) {
+                saveAllBtn.classList.remove('hidden');
+                cancelAllBtn.classList.remove('hidden');
+            } else {
+                saveAllBtn.classList.add('hidden');
+                cancelAllBtn.classList.add('hidden');
+            }
+        }
+
+        document.querySelectorAll('.detail-item').forEach(item => {
+            const column = item.dataset.column;
+            const detailValueSpan = item.querySelector('.detail-value');
+            const detailInput = item.querySelector('.detail-input');
+            const editBtn = item.querySelector('.btn-edit');
+            const saveFieldBtn = item.querySelector('.btn-save-field');
+            const cancelFieldBtn = item.querySelector('.btn-cancel-field');
+
+            // Only proceed if this is an editable field
+            if (!detailValueSpan || !detailInput || !editBtn) {
+                return;
+            }
+
+            console.log("DEBUG: Found editable element for column:", column);
+            
+            // Initial original value from the span's data attribute
+            const originalValue = detailValueSpan.dataset.originalValue; 
+
+            // Function to reset a single field's UI to view mode
+            const resetFieldToViewMode = (col) => {
+                const fieldData = changedFields.get(col);
+                if (fieldData) {
+                    fieldData.inputElement.classList.add('hidden');
+                    fieldData.element.classList.remove('hidden');
+                    fieldData.inputElement.closest('.detail-item').querySelector('.btn-save-field').classList.add('hidden');
+                    fieldData.inputElement.closest('.detail-item').querySelector('.btn-cancel-field').classList.add('hidden');
+                    fieldData.inputElement.closest('.detail-item').querySelector('.btn-edit').classList.remove('hidden');
+                }
+            };
+
+            editBtn.addEventListener('click', () => {
+                detailValueSpan.classList.add('hidden');
+                detailInput.classList.remove('hidden');
+                editBtn.classList.add('hidden');
+                saveFieldBtn.classList.remove('hidden');
+                cancelFieldBtn.classList.remove('hidden');
+                detailInput.focus();
+
+                // Determine input type based on column name for better user experience
+                if (column.includes('Latitude') || column.includes('Longitude') || column.includes('Capacity') || column.includes('Code') || column === 'S_No') {
+                    detailInput.type = 'number';
+                    detailInput.step = 'any'; // Allow decimal numbers for lat/lon
+                } else if (column.includes('Contact_Number')) {
+                    detailInput.type = 'tel'; // For telephone numbers
+                } else if (column.includes('Email_ID')) {
+                    detailInput.type = 'email';
+                } else {
+                    detailInput.type = 'text'; // Default to text
+                }
+
+                // Add to changedFields map if not already there, initialized as not changed
+                if (!changedFields.has(column)) {
+                    changedFields.set(column, {
+                        element: detailValueSpan,
+                        inputElement: detailInput,
+                        originalValue: originalValue,
+                        isChanged: false 
+                    });
+                }
+                updateGlobalButtonsVisibility();
+            });
+
+            // Function to save a single field
+            const saveField = async (col, newVal, element, inputElem) => {
+                // Client-side validation
+                if (inputElem.type === 'number' && newVal !== '' && isNaN(parseFloat(newVal))) {
+                    showMessage(`Invalid input for ${col}. Please enter a number.`, 'error');
+                    // Do not revert inputElem.value here, allow user to correct
+                    return false;
+                }
+                if (inputElem.type === 'email' && newVal !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newVal)) {
+                    showMessage(`Invalid email format for ${col}.`, 'error');
+                     // Do not revert inputElem.value here, allow user to correct
+                    return false;
+                }
+
+                try {
+                    const response = await fetch('/update_mls_data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            MLS_Point_Code: mlsPointCode,
+                            column: col,
+                            value: newVal
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showMessage(`${col} updated successfully!`, 'success');
+                        element.textContent = newVal; // Update displayed value
+                        element.dataset.originalValue = newVal; // Update original value for future edits
+                        return true;
+                    } else {
+                        showMessage(`Error updating ${col}: ${result.message}`, 'error');
+                        return false;
+                    }
+                } catch (error) {
+                    showMessage(`Network error updating ${col}.`, 'error');
+                    console.error('Fetch error for column', col, ':', error);
+                    return false;
+                }
+            };
+
+            saveFieldBtn.addEventListener('click', async () => {
+                const newValue = detailInput.value.trim();
+                const success = await saveField(column, newValue, detailValueSpan, detailInput);
+                if (success) {
+                    resetFieldToViewMode(column);
+                    changedFields.delete(column); // Remove from changed fields
+                    updateGlobalButtonsVisibility();
+                } else {
+                    // If save failed, keep input visible for correction
+                }
+            });
+
+            cancelFieldBtn.addEventListener('click', () => {
+                detailInput.value = originalValue; // Revert input value to the initial original value
+                detailValueSpan.textContent = originalValue; // Revert span text
+                resetFieldToViewMode(column);
+                changedFields.delete(column); // Remove from changed fields
+                updateGlobalButtonsVisibility();
+            });
+
+            // Track changes for global save/cancel
+            detailInput.addEventListener('input', () => {
+                const currentFieldData = changedFields.get(column);
+                if (currentFieldData) {
+                    currentFieldData.isChanged = (detailInput.value.trim() !== currentFieldData.originalValue);
+                    if (currentFieldData.isChanged) {
+                        changedFields.set(column, currentFieldData); // Update if changed
+                    } else {
+                        changedFields.delete(column); // Remove if reverted to original
+                    }
+                } else {
+                    // This case handles input where edit button wasn't clicked first (shouldn't happen with current UI)
+                    // If it somehow gets here, ensure it's tracked if value differs from original
+                    const initialVal = detailValueSpan.dataset.originalValue;
+                    if (detailInput.value.trim() !== initialVal) {
+                        changedFields.set(column, {
+                            element: detailValueSpan,
+                            inputElement: detailInput,
+                            originalValue: initialVal,
+                            isChanged: true
+                        });
+                    }
+                }
+                updateGlobalButtonsVisibility();
+            });
+        });
+
+        // Global Save All Changes
+        saveAllBtn.addEventListener('click', async () => {
+            showMessage('Saving all changes...', 'info');
+            let allSuccess = true;
+            // Iterate over a copy of changedFields because saveField might modify it (delete on success)
+            for (let [column, fieldData] of Array.from(changedFields.entries())) { 
+                if (fieldData.isChanged) { // Only save if value is actually different from its original
+                    const success = await saveField(column, fieldData.inputElement.value.trim(), fieldData.element, fieldData.inputElement);
+                    if (!success) {
+                        allSuccess = false;
+                        // If a field save fails, we don't automatically reset its UI,
+                        // keeping it in edit mode for user to correct.
+                    } else {
+                        // If successfully saved, ensure its UI is reset and it's removed from changedFields
+                        resetFieldToViewMode(column);
+                        changedFields.delete(column);
+                    }
+                } else {
+                    // If not actually changed, but somehow still in map, just reset UI
+                    resetFieldToViewMode(column);
+                    changedFields.delete(column);
+                }
+            }
+            updateGlobalButtonsVisibility(); // Re-evaluate after loop
+            if (allSuccess) {
+                showMessage('All eligible changes saved successfully!', 'success');
+            } else {
+                showMessage('Some changes could not be saved. Please check the specific fields.', 'error');
+            }
+        });
+
+        // Global Cancel All Changes
+        cancelAllBtn.addEventListener('click', () => {
+            showMessage('Cancelling all changes...', 'info');
+            for (let [column, fieldData] of Array.from(changedFields.entries())) { // Iterate over a copy
+                fieldData.inputElement.value = fieldData.originalValue; // Revert input value
+                fieldData.element.textContent = fieldData.originalValue; // Revert span text
+                resetFieldToViewMode(column); // Reset UI to view mode
+            }
+            changedFields.clear(); // Clear all tracked changes
+            updateGlobalButtonsVisibility();
+            showMessage('All changes cancelled.', 'info');
+        });
+
+        updateGlobalButtonsVisibility(); // Initial check on load
+    });
+</script>
+</body>
+</html>
