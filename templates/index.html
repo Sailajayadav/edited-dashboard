@@ -5,7 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MLS Point Locator Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <style>
+        body { font-family: 'Inter', Arial, sans-serif; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .filter-form { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-weight: bold; margin-bottom: 5px; }
+        .filter-form select, .filter-form button { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { padding: 8px 12px; cursor: pointer; border-radius: 5px; }
+        .filter-btn { background-color: #1757A6; color: white; border: none; align-self: flex-end; }
+        .no-records { text-align: center; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        thead th { background-color: #1757A6; color: white; padding: 10px; text-align: left; }
+        tbody td { padding: 10px; border: 1px solid #ddd; }
+
         /* Basic styles for editable cells in the main table */
         .editable-cell {
             cursor: pointer;
@@ -16,6 +31,17 @@
             border: 1px solid #007bff;
             background-color: #f8f9fa;
         }
+        .editable-cell:hover {
+            background-color: #f0f0f0;
+        }
+        .editable-cell input {
+            width: 100%;
+            box-sizing: border-box;
+            border: none;
+            padding: 0;
+            background: transparent;
+        }
+
         /* Message styling */
         .message {
             margin-top: 20px;
@@ -34,59 +60,19 @@
             border-color: #f5c6cb;
         }
         /* Form for adding new rows */
-        .add-row-form {
-            margin-top: 20px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        .add-row-form label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .add-row-form input {
-            width: calc(100% - 10px);
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .add-row-form button {
-            grid-column: 1 / -1; /* Span across all columns */
-            width: auto;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .add-row-form button:hover {
-            background-color: #218838;
-        }
+        .add-row-section { margin-top: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+        .add-row-section h2 { margin-bottom: 15px; }
+        .add-row-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .add-row-form button { grid-column: 1 / -1; width: auto; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .add-row-form button:hover { background-color: #218838; }
         /* Action buttons in table (View, Delete) */
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-        }
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .delete-btn:hover {
-            background-color: #c82333;
-        }
+        .action-buttons { display: flex; gap: 5px; justify-content: center; }
+        .delete-btn { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .delete-btn:hover { background-color: #c82333; }
+        .view-btn { background-color: #1757A6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .view-btn:hover { background-color: #0f4a8c; }
     </style>
 </head>
 <body>
@@ -111,7 +97,6 @@
             <label for="mandal_name">Mandal:</label>
             <select name="mandal_name" id="mandal_name">
                 <option value="All">All Mandals</option>
-                {# Mandals will be dynamically loaded by JavaScript #}
                 {% for mandal in mandals %}
                 <option value="{{ mandal }}" {% if selected_mandal == mandal %}selected{% endif %}>{{ mandal }}</option>
                 {% endfor %}
@@ -122,7 +107,6 @@
             <label for="mls_point_name">MLS Point Name:</label>
             <select name="mls_point_name" id="mls_point_name">
                 <option value="All">All MLS Points</option>
-                {# MLS Point Names will be dynamically loaded by JavaScript #}
                 {% for name in mls_names %}
                 <option value="{{ name }}" {% if selected_mls_name == name %}selected{% endif %}>{{ name }}</option>
                 {% endfor %}
@@ -133,7 +117,6 @@
             <label for="mls_point_code">MLS Point Code:</label>
             <select name="mls_point_code" id="mls_point_code">
                 <option value="All">All Codes</option>
-                {# MLS Point Codes will be dynamically loaded by JavaScript #}
                 {% for code in mls_codes %}
                 <option value="{{ code }}" {% if selected_mls_code == code %}selected{% endif %}>{{ code }}</option>
                 {% endfor %}
@@ -151,21 +134,21 @@
             <thead>
                 <tr>
                     {% for col in summary_cols %}
-                    <th>{{ col.replace('_', ' ').replace('in', '').replace('Pot', 'Point') }}</th> {# Clean up header text #}
+                    <th>{{ col.replace('_', ' ').replace('in', '').replace('Pot', 'Point') }}</th>
                     {% endfor %}
-                    <th>Actions</th> {# For View Details & Delete #}
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in records %}
                 <tr data-mls-code="{{ row['MLS_Point_Code'] }}">
                     {% for col in summary_cols %}
-                    <td data-label="{{ col.replace('_', ' ') }}" data-column="{{ col }}" class="editable-cell">
+                    <td data-column="{{ col }}" class="{% if col not in ['S_No', 'MLS_Point_Code', 'Last_Updated'] %}editable-cell{% endif %}">
                         {{ row[col] if row[col] is not none else '' }}
                     </td>
                     {% endfor %}
                     <td data-label="Actions" class="action-buttons">
-                        <a class="btn" href="{{ url_for('details', mls_code=row['MLS_Point_Code']) }}">View</a>
+                        <a class="btn view-btn" href="{{ url_for('details', mls_code=row['MLS_Point_Code']) }}">View</a>
                         <button class="delete-btn" data-mls-code="{{ row['MLS_Point_Code'] }}">Delete</button>
                     </td>
                 </tr>
@@ -180,73 +163,17 @@
     <div class="add-row-section">
         <h2>Add New MLS Point</h2>
         <form id="add-mls-form" class="add-row-form">
-            {# Add input fields for all columns you want to allow adding. MLS_Point_Code is crucial. #}
-            {# Consider adding 'required' for essential fields #}
-            <div class="form-group">
-                <label for="new_MLS_Point_Code">MLS Point Code:</label>
-                <input type="text" id="new_MLS_Point_Code" name="MLS_Point_Code" required>
-            </div>
-            <div class="form-group">
-                <label for="new_MLS_Point_Name">MLS Point Name:</label>
-                <input type="text" id="new_MLS_Point_Name" name="MLS_Point_Name" required>
-            </div>
-            <div class="form-group">
-                <label for="new_Mandal_Name">Mandal Name:</label>
-                <input type="text" id="new_Mandal_Name" name="Mandal_Name">
-            </div>
-            <div class="form-group">
-                <label for="new_District_Name">District Name:</label>
-                <input type="text" id="new_District_Name" name="District_Name">
-            </div>
-            <div class="form-group">
-                <label for="new_MLS_Point_Incharge_Name">Incharge Name:</label>
-                <input type="text" id="new_MLS_Point_Incharge_Name" name="MLS_Point_Incharge_Name">
-            </div>
-            <div class="form-group">
-                <label for="new_Storage_Capacity_in">Storage Capacity (in):</label>
-                <input type="number" id="new_Storage_Capacity_in" name="Storage_Capacity_in">
-            </div>
-            <div class="form-group">
-                <label for="new_Contact_Number">Contact Number:</label>
-                <input type="text" id="new_Contact_Number" name="Contact_Number">
-            </div>
-            <div class="form-group">
-                <label for="new_Email_ID">Email ID:</label>
-                <input type="email" id="new_Email_ID" name="Email_ID">
-            </div>
-            <div class="form-group">
-                <label for="new_Address">Address:</label>
-                <input type="text" id="new_Address" name="Address">
-            </div>
-            <div class="form-group">
-                <label for="new_Latitude">Latitude:</label>
-                <input type="number" step="any" id="new_Latitude" name="MLS_Point_Latitude">
-            </div>
-            <div class="form-group">
-                <label for="new_Longitude">Longitude:</label>
-                <input type="number" step="any" id="new_Longitude" name="MLS_Point_Logitude">
-            </div>
-            <div class="form-group">
-                <label for="new_Status">Status:</label>
-                <input type="text" id="new_Status" name="Status">
-            </div>
-            <div class="form-group">
-                <label for="new_District_Code">District Code:</label>
-                <input type="number" id="new_District_Code" name="District_Code">
-            </div>
-            <div class="form-group">
-                <label for="new_Mandal_Code">Mandal Code:</label>
-                <input type="number" id="new_Mandal_Code" name="Mandal_Code">
-            </div>
-            <div class="form-group">
-                <label for="new_Incharge_CFMS">Incharge CFMS/EMP:</label>
-                <input type="text" id="new_Incharge_CFMS" name="MLS_Point_Incharge_CFMS_Corporation_EMP">
-            </div>
-            
+            {% for col in editable_cols %}
+                {% if col not in ['S_No', 'Last_Updated'] %}
+                <div class="form-group">
+                    <label for="new_{{ col }}">{{ col.replace('_', ' ') }}:</label>
+                    <input type="text" id="new_{{ col }}" name="{{ col }}" {% if col == 'MLS_Point_Code' or col == 'MLS_Point_Name' %}required{% endif %}>
+                </div>
+                {% endif %}
+            {% endfor %}
             <button type="submit">Add New MLS Point</button>
         </form>
     </div>
-
 </div>
 
 <script>
@@ -259,216 +186,151 @@
         const addMlsForm = document.getElementById('add-mls-form');
         const tableBody = document.querySelector('table tbody');
 
-        // Function to display messages
         function showMessage(message, type) {
             messageArea.textContent = message;
             messageArea.className = `message ${type}`;
             messageArea.style.display = 'block';
             setTimeout(() => {
                 messageArea.style.display = 'none';
-            }, 5000); // Hide after 5 seconds
+            }, 5000);
         }
 
-        // Function to populate a dropdown
-        async function populateDropdown(selectElement, data, selectedValue = 'All') {
-            selectElement.innerHTML = `<option value="All">All ${selectElement.id.replace(/_/g, ' ').replace('name', '').trim() || 'Options'}</option>`;
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-                if (item === selectedValue) {
-                    option.selected = true;
+        async function populateDropdown(selectElement, endpoint, filterValue, selectedValue) {
+            try {
+                const response = await fetch(`${endpoint}/${filterValue}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                selectElement.appendChild(option);
-            });
-        }
-
-        // Event listener for District dropdown change
-        districtSelect.addEventListener('change', async function() {
-            const selectedDistrict = this.value;
-            
-            // Fetch and populate Mandals
-            if (selectedDistrict !== 'All') {
-                const response = await fetch(`/get_mandals/${selectedDistrict}`);
-                const mandals = await response.json();
-                populateDropdown(mandalSelect, mandals);
-            } else {
-                // If "All Districts" is selected, fetch all mandals
-                const response = await fetch(`/get_mandals/All`); 
-                const mandals = await response.json();
-                populateDropdown(mandalSelect, mandals);
-            }
-            
-            // Reset and re-populate MLS Name and Code dropdowns based on the new mandal selection
-            // Trigger change event on mandalSelect to update MLS Points/Codes
-            mandalSelect.dispatchEvent(new Event('change'));
-        });
-
-        // Event listener for Mandal dropdown change
-        mandalSelect.addEventListener('change', async function() {
-            const selectedMandal = this.value;
-
-            // Fetch and populate MLS Point Names
-            if (selectedMandal !== 'All') {
-                const nameResponse = await fetch(`/get_mls_points/${selectedMandal}`);
-                const mlsNames = await nameResponse.json();
-                populateDropdown(mlsNameSelect, mlsNames);
-
-                // Fetch and populate MLS Point Codes
-                const codeResponse = await fetch(`/get_mls_codes/${selectedMandal}`);
-                const mlsCodes = await codeResponse.json();
-                populateDropdown(mlsCodeSelect, mlsCodes);
-            } else {
-                // If "All Mandals" is selected, fetch all MLS Names and Codes (not filtered by mandal)
+                const data = await response.json();
                 
-                const nameResponse = await fetch(`/get_mls_points/All`); 
-                const mlsNames = await nameResponse.json();
-                populateDropdown(mlsNameSelect, mlsNames);
-
-                const codeResponse = await fetch(`/get_mls_codes/All`); 
-                const mlsCodes = await response.json();
-                populateDropdown(mlsCodeSelect, mlsCodes);
+                selectElement.innerHTML = `<option value="All">All ${selectElement.id.replace(/_/g, ' ').replace('name', '').trim() || 'Options'}</option>`;
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+                    if (item === selectedValue) {
+                        option.selected = true;
+                    }
+                    selectElement.appendChild(option);
+                });
+            } catch (error) {
+                console.error(`Error populating dropdown from ${endpoint}:`, error);
+                showMessage('Failed to load filter options.', 'error');
             }
+        }
+
+        districtSelect.addEventListener('change', function() {
+            const selectedDistrict = this.value;
+            const selectedMandal = mandalSelect.value;
+            populateDropdown(mandalSelect, '/get_mandals', selectedDistrict, selectedMandal);
+            mlsNameSelect.innerHTML = `<option value="All">All MLS Points</option>`;
+            mlsCodeSelect.innerHTML = `<option value="All">All Codes</option>`;
         });
 
-        // Initial population on page load
+        mandalSelect.addEventListener('change', function() {
+            const selectedMandal = this.value;
+            const selectedName = mlsNameSelect.value;
+            const selectedCode = mlsCodeSelect.value;
+            populateDropdown(mlsNameSelect, '/get_mls_names', selectedMandal, selectedName);
+            populateDropdown(mlsCodeSelect, '/get_mls_codes', selectedMandal, selectedCode);
+        });
+        
         if (districtSelect.value !== 'All') {
-            districtSelect.dispatchEvent(new Event('change'));
-        } else {
+             districtSelect.dispatchEvent(new Event('change'));
+        } else if (mandalSelect.value !== 'All') {
             mandalSelect.dispatchEvent(new Event('change'));
         }
 
-        // --- Interactive Table Editing ---
         let originalValue = '';
 
         document.querySelectorAll('.editable-cell').forEach(cell => {
             cell.addEventListener('click', function() {
-                // Prevent editing of MLS_Point_Code and other primary/static keys for consistency
-                if (this.dataset.column === 'MLS_Point_Code' || this.dataset.column === 'S_No') {
-                    showMessage('This field cannot be edited directly from the summary table. Please use the details page or add a new record if necessary.', 'error');
+                const columnName = this.dataset.column;
+                
+                if (columnName === 'MLS_Point_Code') {
+                    showMessage('The MLS Point Code is a unique identifier and cannot be changed.', 'error');
                     return;
                 }
 
-                if (this.classList.contains('editing')) {
-                    return; // Already editing
-                }
+                if (this.classList.contains('editing')) { return; }
 
                 originalValue = this.textContent.trim();
                 this.classList.add('editing');
 
                 const input = document.createElement('input');
-                input.type = 'text'; // Default to text
+                input.type = 'text'; 
                 
-                // Specific input types for common numeric/email fields
-                const columnName = this.dataset.column;
-                if (columnName === 'Storage_Capacity_in' || columnName === 'District_Code' || columnName === 'Mandal_Code') {
+                if (columnName.includes('Latitude') || columnName.includes('Logitude') || columnName.includes('Capacity')) {
                     input.type = 'number';
-                } else if (columnName === 'Contact_Number') {
-                    input.type = 'tel'; // Telephone number
-                } else if (columnName === 'Email_ID') {
-                    input.type = 'email';
+                    input.step = 'any';
                 }
 
                 input.value = originalValue;
                 input.style.width = '100%';
                 input.style.boxSizing = 'border-box';
                 
-                // Replace cell content with input field
                 this.textContent = '';
                 this.appendChild(input);
                 input.focus();
 
-                // Handle blur (when focus leaves the input)
                 input.addEventListener('blur', async () => {
                     const newValue = input.value.trim();
                     if (newValue !== originalValue) {
                         const mlsPointCode = this.closest('tr').dataset.mlsCode;
                         
-                        // Basic client-side validation before sending
-                        if (input.type === 'number' && newValue !== '' && isNaN(parseFloat(newValue))) {
-                            showMessage(`Invalid input for ${columnName}. Please enter a number.`, 'error');
-                            this.textContent = originalValue; // Revert
-                            this.classList.remove('editing');
-                            return;
-                        }
-                        if (input.type === 'email' && newValue !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newValue)) {
-                            showMessage(`Invalid email format for ${columnName}.`, 'error');
-                            this.textContent = originalValue; // Revert
-                            this.classList.remove('editing');
-                            return;
-                        }
-
                         try {
                             const response = await fetch('/update_mls_data', {
                                 method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    MLS_Point_Code: mlsPointCode,
-                                    column: columnName,
-                                    value: newValue
-                                })
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ MLS_Point_Code: mlsPointCode, column: columnName, value: newValue })
                             });
 
                             const result = await response.json();
                             if (result.success) {
                                 showMessage(result.message, 'success');
-                                this.textContent = newValue; // Update cell with new value
+                                this.textContent = newValue;
                             } else {
                                 showMessage(result.message, 'error');
-                                this.textContent = originalValue; // Revert to original on error
+                                this.textContent = originalValue;
                             }
                         } catch (error) {
                             showMessage('Network error or server unavailable.', 'error');
-                            this.textContent = originalValue; // Revert on network error
+                            this.textContent = originalValue;
                         }
                     } else {
-                        this.textContent = originalValue; // If no change, revert
+                        this.textContent = originalValue;
                     }
                     this.classList.remove('editing');
                 });
 
-                // Handle Enter key to save changes
                 input.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
-                        input.blur(); // Trigger blur to save
+                        input.blur();
                     }
                 });
             });
         });
 
-        // --- Add New MLS Point ---
         addMlsForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const newRecord = {};
             formData.forEach((value, key) => {
-                // Convert empty strings to null or appropriate default for DB
                 newRecord[key] = value === '' ? null : value;
             });
-
-            // Basic validation for key fields if needed
-            if (!newRecord['MLS_Point_Code'] || !newRecord['MLS_Point_Name']) {
-                showMessage('MLS Point Code and Name are required.', 'error');
-                return;
-            }
-
+            
             try {
                 const response = await fetch('/add_mls_data', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(newRecord)
                 });
 
                 const result = await response.json();
                 if (result.success) {
                     showMessage(result.message, 'success');
-                    addMlsForm.reset(); // Clear the form
-                    // Reload the page to show the new record in the table
+                    addMlsForm.reset();
                     location.reload(); 
                 } else {
                     showMessage(result.message, 'error');
@@ -478,7 +340,6 @@
             }
         });
 
-        // --- Delete MLS Point ---
         tableBody.addEventListener('click', async function(e) {
             if (e.target.classList.contains('delete-btn')) {
                 const mlsCodeToDelete = e.target.dataset.mlsCode;
@@ -486,16 +347,14 @@
                     try {
                         const response = await fetch('/delete_mls_data', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ MLS_Point_Code: mlsCodeToDelete })
                         });
 
                         const result = await response.json();
                         if (result.success) {
                             showMessage(result.message, 'success');
-                            e.target.closest('tr').remove(); // Remove row from table
+                            e.target.closest('tr').remove();
                         } else {
                             showMessage(result.message, 'error');
                         }

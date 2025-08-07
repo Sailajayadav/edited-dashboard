@@ -3,502 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLS Point Details Dashboard</title>
+    <title>Dynamic MLS Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <style>
-        /* Custom styles for details page */
-        /* These styles enhance Tailwind's utility classes or provide complex layouts */
-        body {
-            font-family: 'Inter', sans-serif; /* Example font */
-            background-color: #f3f4f6; /* Tailwind gray-100 */
+        body { font-family: 'Inter', Arial, sans-serif; background: #fff; }
+        .container { background: #fff; border: 1.5px solid #333; margin: 32px auto; padding: 24px 18px 18px 18px; max-width: 1400px; box-sizing: border-box; border-radius: 4px; }
+        .section-header { background: #1757A6; color: #fff; font-weight: 700; font-size: 1.1rem; padding: 0.25rem 1rem; display: flex; align-items: center; border-radius: 3px 3px 0 0; border: 1.5px solid #1757A6; border-bottom: none; }
+        .section-header .icon { font-size: 1.2rem; margin-right: 0.5rem; }
+        .edit-btn, .save-btn, .upload-btn, .ekyc-btn, .otp-btn, .add-btn, .cancel-btn { border: 1px solid #1757A6; color: #1757A6; background: #fff; font-size: 0.85rem; border-radius: 3px; padding: 0.1rem 0.7rem; margin-left: 0.5rem; cursor: pointer; font-weight: 500; box-shadow: none; transition: all 0.3s ease; }
+        .edit-btn:hover, .save-btn:hover, .upload-btn:hover, .ekyc-btn:hover, .otp-btn:hover, .add-btn:hover, .cancel-btn:hover { background: #1757A6; color: #fff; }
+        .save-btn { background: #28a745; border-color: #28a745; color: #fff; }
+        .save-btn:hover { background: #218838; }
+        .cancel-btn { background: #dc3545; border-color: #dc3545; color: #fff; }
+        .cancel-btn:hover { background: #c82333; }
+        .edit-btn, .upload-btn, .save-btn, .cancel-btn { float: right; margin-left: 0.5rem; }
+        .photo-box { border: 1px solid #1757A6; height: 90%; aspect-ratio: 1/1; min-width: 90px; min-height: 90px; max-width: 140px; max-height: 140px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.9rem; color: #1757A6; background: #fff; border-radius: 3px; position: relative; overflow: hidden; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-upload { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .img-placeholder { font-size: 1.5rem; color: #bdbdbd; cursor: pointer; transition: all 0.3s ease; }
+        .img-placeholder:hover { color: #1757A6; }
+        .table th, .table td { border: 1px solid #333; padding: 0.25rem 0.5rem; font-size: 0.97rem; min-height: 28px; height: 28px; background: #fff; }
+        .table th { background: #f5f6fa; font-weight: 600; }
+        .table { width: 100%; border-collapse: collapse; margin-bottom: 1.1rem; table-layout: fixed; border-radius: 3px; }
+        .table th, .table td { word-break: break-word; }
+        .table input, .table select, .table textarea { width: 100%; border: none; background: transparent; padding: 0.2rem; font-size: 0.97rem; }
+        .table input:focus, .table select:focus, .table textarea:focus { outline: 2px solid #1757A6; border-radius: 2px; }
+        .table-col-7 th, .table-col-7 td { width: 14.28%; }
+        .table-col-6 th, .table-col-6 td { width: 16.66%; }
+        .table-col-4 th, .table-col-4 td { width: 25%; }
+        .table-col-2 th, .table-col-2 td { width: 50%; }
+        .table-commodities th:nth-child(1), .table-commodities td:nth-child(1) { width: 7%; }
+        .table-commodities th:nth-child(2), .table-commodities td:nth-child(2) { width: 23%; }
+        .table-commodities th:nth-child(n+3), .table-commodities td:nth-child(n+3) { width: 14%; }
+        .table-stock th, .table-stock td { font-size: 0.93rem; padding: 0.15rem 0.3rem; min-height: 24px; height: 24px; }
+        .table-stock th { font-size: 1rem; }
+        .editable { background: #f8f9fa; }
+        .readonly { background: #fff; }
+        .success-message, .error-message { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 0.75rem; border-radius: 0.25rem; margin-bottom: 1rem; display: none; }
+        .error-message { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .pdf-download-btn { position: fixed; top: 20px; right: 20px; background: #1757A6; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .pdf-download-btn:hover { background: #0f4a8c; }
+        @media print {
+            .edit-btn, .save-btn, .cancel-btn, .upload-btn, .ekyc-btn, .otp-btn, .add-btn, .pdf-download-btn { display: none !important; }
         }
-        .container {
-            max-width: 900px;
-            margin: 2rem auto; /* Tailwind my-8 mx-auto */
-            background-color: #ffffff; /* Tailwind white */
-            padding: 2rem; /* Tailwind p-8 */
-            border-radius: 0.75rem; /* Tailwind rounded-xl */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-xl */
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e5e7eb; /* Tailwind border-gray-200 */
-            /* Sticky Header Styles */
-            position: sticky;
-            top: 0;
-            z-index: 20; /* Ensure it stays on top of other content */
-            background-color: #ffffff; /* Must have a background to hide scrolling content */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: add shadow to lift it */
-        }
-        .header h1 {
-            color: #1f2937; /* Tailwind gray-900 */
-            font-size: 2.25rem; /* Tailwind text-4xl */
-            font-weight: 700; /* Tailwind font-bold */
-            margin-bottom: 0.5rem;
-        }
-        .header p {
-            color: #6b7280; /* Tailwind gray-500 */
-            font-size: 1rem; /* Tailwind text-base */
-        }
-
-        /* Details Panel Grid Layout */
-        .details-panel {
+        .image-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
-            gap: 1.5rem; /* Tailwind gap-6 */
-            padding: 1.5rem;
-            border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
-            border-radius: 0.5rem; /* Tailwind rounded-lg */
-            background-color: #f9fafb; /* Tailwind gray-50 */
-        }
-
-        /* Individual Detail Item */
-        .detail-item {
-            display: flex;
-            flex-direction: column; /* Stack label and value */
-            padding: 1rem;
-            border-radius: 0.5rem;
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
-            position: relative; /* For button positioning */
-        }
-        .detail-label {
-            font-weight: 600; /* Tailwind font-semibold */
-            color: #4b5563; /* Tailwind gray-700 */
-            font-size: 0.875rem; /* Tailwind text-sm */
-            margin-bottom: 0.25rem;
-        }
-        .detail-value {
-            color: #1f2937; /* Tailwind gray-900 */
-            font-size: 1.125rem; /* Tailwind text-lg */
-            min-height: 1.5rem; /* Ensure consistent height */
-        }
-        .detail-input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
-            border-radius: 0.375rem; /* Tailwind rounded-md */
-            font-size: 1.125rem; /* Match detail-value font size */
-            background-color: #f9fafb; /* Tailwind gray-50 */
-            color: #1f2937;
-            box-sizing: border-box; /* Include padding/border in width */
-        }
-        .detail-input:focus {
-            outline: none;
-            border-color: #2563eb; /* Tailwind blue-600 */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* Tailwind ring-blue-500/50 */
-        }
-
-        /* Buttons within detail item */
-        .detail-actions {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            display: flex;
-            gap: 0.5rem;
-        }
-        .btn-icon {
-            padding: 0.375rem; /* Tailwind p-1.5 */
-            border-radius: 0.375rem; /* Tailwind rounded-md */
-            transition: background-color 0.2s ease-in-out;
-            border: none;
-            cursor: pointer;
-            display: flex; /* For centering SVG/icon */
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-icon svg {
-            width: 1.25rem; /* Tailwind w-5 */
-            height: 1.25rem; /* Tailwind h-5 */
-        }
-        .btn-edit {
-            background-color: #e0e7ff; /* Tailwind indigo-100 */
-            color: #4f46e5; /* Tailwind indigo-600 */
-        }
-        .btn-edit:hover {
-            background-color: #c7d2fe; /* Tailwind indigo-200 */
-        }
-        .btn-save-field {
-            background-color: #dcfce7; /* Tailwind green-100 */
-            color: #16a34a; /* Tailwind green-600 */
-        }
-        .btn-save-field:hover {
-            background-color: #bbf7d0; /* Tailwind green-200 */
-        }
-        .btn-cancel-field {
-            background-color: #fee2e2; /* Tailwind red-100 */
-            color: #dc2626; /* Tailwind red-600 */
-        }
-        .btn-cancel-field:hover {
-            background-color: #fecaca; /* Tailwind red-200 */
-        }
-
-        /* Global action buttons */
-        .global-actions {
-            margin-top: 2rem;
-            display: flex;
-            justify-content: flex-end; /* Align to right */
-            gap: 1rem; /* Tailwind gap-4 */
-        }
-        .btn-global {
-            padding: 0.75rem 1.5rem; /* Tailwind px-6 py-3 */
-            border-radius: 0.5rem; /* Tailwind rounded-lg */
-            font-weight: 600; /* Tailwind font-semibold */
-            transition: background-color 0.2s ease-in-out;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-save-all {
-            background-color: #22c55e; /* Tailwind green-500 */
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
-        }
-        .btn-save-all:hover {
-            background-color: #16a34a; /* Tailwind green-600 */
-        }
-        .btn-cancel-all {
-            background-color: #ef4444; /* Tailwind red-500 */
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .btn-cancel-all:hover {
-            background-color: #dc2626; /* Tailwind red-600 */
-        }
-        .btn-back {
-            background-color: #6b7280; /* Tailwind gray-500 */
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
-            text-decoration: none; /* For anchor tag */
-            display: inline-flex; /* To align icon/text */
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .btn-back:hover {
-            background-color: #4b5563; /* Tailwind gray-600 */
-        }
-
-        /* Message styling */
-        .message {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
             margin-top: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            display: none;
+        }
+        .image-upload-box {
+            border: 1px dashed #ccc;
+            background-color: #f8f8f8;
+            padding: 1rem;
             text-align: center;
+            cursor: pointer;
+            position: relative;
+            min-height: 150px;
         }
-        .message.success {
-            background-color: #dcfce7; /* Tailwind green-100 */
-            color: #16a34a; /* Tailwind green-600 */
-            border: 1px solid #bbf7d0; /* Tailwind green-200 */
+        .image-upload-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
-        .message.error {
-            background-color: #fee2e2; /* Tailwind red-100 */
-            color: #dc2626; /* Tailwind red-600 */
-            border: 1px solid #fecaca; /* Tailwind red-200 */
-        }
-        .message.info {
-            background-color: #e0f2fe; /* Tailwind blue-100 */
-            color: #2563eb; /* Tailwind blue-600 */
-            border: 1px solid #bfdbfe; /* Tailwind blue-200 */
+        .image-upload-box input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased">
-<div class="container">
-    <div class="header">
-        <h1>{{ info['MLS_Point_Name'] if info.get('MLS_Point_Name') else 'N/A' }}</h1>
-        <p class="text-gray-500">MLS Point Code: {{ info['MLS_Point_Code'] if info.get('MLS_Point_Code') else 'N/A' }}</p>
-    </div>
+<body>
+    <button class="pdf-download-btn" onclick="window.print()">
+        <i class="fas fa-download"></i> Download PDF
+    </button>
 
-    <div id="message-area" class="message"></div>
+    <div class="success-message" id="successMessage">Data saved successfully!</div>
+    <div class="error-message" id="errorMessage" style="background:#fee2e2; color:#dc2626; border-color:#fecaca;"></div>
 
-    <div class="details-panel" data-mls-code="{{ info['MLS_Point_Code'] }}">
-        {% for key in info.keys() %}
-            {# Clean up key for display to match screenshot. #}
-            {% set display_key = key.replace('_', ' ').replace('in', '').replace('Pot', 'Point').replace('CFMS Corporation EMP', 'CFMS/EMP').replace('S No', 'S No') %}
-            {% set value = info[key] %}
-            <div class="detail-item" data-column="{{ key }}">
-                <span class="detail-label">{{ display_key }}:</span>
-                {# Check if the column is in EDITABLE_COLS and not primary/static keys #}
-                {% if key in editable_cols and key not in ['MLS_Point_Code', 'S_No'] %}
-                    <span class="detail-value text-lg" data-original-value="{{ value if value is not none else '' }}">
-                        {{ value if value is not none else '' }}
-                    </span>
-                    <input type="text" class="detail-input hidden" value="{{ value if value is not none else '' }}">
-                    <div class="detail-actions">
-                        <button class="btn-icon btn-edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14.25v4.5m-6.75-6.75h.008v.008H12v-.008z" />
-                            </svg>
-                        </button>
-                        <button class="btn-icon btn-save-field hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
-                        </button>
-                        <button class="btn-icon btn-cancel-field hidden">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                {% else %}
-                    <span class="detail-value text-lg">
-                        {{ value if value is not none else '' }}
-                    </span>
-                {% endif %}
+    <div class="container" id="details-content">
+        <a href="{{ url_for('index') }}" class="edit-btn mb-4 inline-block">Back to Dashboard</a>
+        <div class="w-full flex justify-center mb-4">
+            <div class="bg-[#1757A6] text-white text-xl font-bold rounded px-10 py-2 mt-2 mb-2" style="border-radius:6px;">MLS AT A GLANCE</div>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🏢</span> MLS Point Details
+                <button class="edit-btn" onclick="toggleEdit('mls-details')">EDIT</button>
+                <button class="save-btn" id="save-mls-details" onclick="saveSection('mls-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-mls-details" onclick="cancelEdit('mls-details')" style="display:none;">CANCEL</button>
             </div>
-        {% endfor %}
+            <table class="table table-col-2" id="mls-details">
+                <tr><th class="font-bold">MLS Point Code</th><td><span class="readonly" data-field="MLS_Point_Code">{{ info.get('MLS_Point_Code', 'N/A') }}</span></td></tr>
+                <tr><th class="font-bold">MLS Point Name</th><td><span class="readonly" data-field="MLS_Point_Name">{{ info.get('MLS_Point_Name', 'N/A') }}</span><input type="text" class="editable" data-field="MLS_Point_Name" value="{{ info.get('MLS_Point_Name', '') }}" style="display:none;"></td></tr>
+                <tr><th>District Name</th><td><span class="readonly" data-field="District_Name">{{ info.get('District_Name', 'N/A') }}</span><input type="text" class="editable" data-field="District_Name" value="{{ info.get('District_Name', '') }}" style="display:none;"></td></tr>
+                <tr><th>Mandal Name</th><td><span class="readonly" data-field="Mandal_Name">{{ info.get('Mandal_Name', 'N/A') }}</span><input type="text" class="editable" data-field="Mandal_Name" value="{{ info.get('Mandal_Name', '') }}" style="display:none;"></td></tr>
+                <tr><th>MLS Point Address</th><td><span class="readonly" data-field="MLS_Point_Address">{{ info.get('MLS_Point_Address', 'N/A') }}</span><textarea class="editable" data-field="MLS_Point_Address" style="display:none; min-height:60px;">{{ info.get('MLS_Point_Address', '') }}</textarea></td></tr>
+                <tr><th>Latitude</th><td><span class="readonly" data-field="MLS_Point_Latitude">{{ info.get('MLS_Point_Latitude', 'N/A') }}</span><input type="text" class="editable" data-field="MLS_Point_Latitude" value="{{ info.get('MLS_Point_Latitude', '') }}" style="display:none;"></td></tr>
+                <tr><th>Longitude</th><td><span class="readonly" data-field="MLS_Point_Logitude">{{ info.get('MLS_Point_Logitude', 'N/A') }}</span><input type="text" class="editable" data-field="MLS_Point_Logitude" value="{{ info.get('MLS_Point_Logitude', '') }}" style="display:none;"></td></tr>
+                <tr><th>Fetch Live Location</th><td><button class="edit-btn" onclick="fetchLocation()"><i class="fas fa-map-marker-alt"></i> Get Directions</button></td></tr>
+                <tr><th>Storage Capacity in MTs</th><td><span class="readonly" data-field="Storage_Capacity_in">{{ info.get('Storage_Capacity_in', 'N/A') }}</span><input type="text" class="editable" data-field="Storage_Capacity_in" value="{{ info.get('Storage_Capacity_in', '') }}" style="display:none;"></td></tr>
+                <tr><th>Compound Wall Available</th><td><span class="readonly" data-field="Compound_Wall_Available_Yes_No">{{ info.get('Compound_Wall_Available_Yes_No', 'N/A') }}</span><select class="editable" data-field="Compound_Wall_Available_Yes_No" style="display:none;"><option value="Yes" {% if info.get('Compound_Wall_Available_Yes_No') == 'Yes' %}selected{% endif %}>Yes</option><option value="No" {% if info.get('Compound_Wall_Available_Yes_No') == 'No' %}selected{% endif %}>No</option></select></td></tr>
+                <tr><th>Distance From Main Road To Reach MLS (in Kms)</th><td><span class="readonly" data-field="Distance_From_Main_Road_To_Reach_MLS_In_Kms">{{ info.get('Distance_From_Main_Road_To_Reach_MLS_In_Kms', 'N/A') }}</span><input type="text" class="editable" data-field="Distance_From_Main_Road_To_Reach_MLS_In_Kms" value="{{ info.get('Distance_From_Main_Road_To_Reach_MLS_In_Kms', '') }}" style="display:none;"></td></tr>
+                <tr><th>Internal Roads Available</th><td><span class="readonly" data-field="Internal_Roads_Available_Yes_No">{{ info.get('Internal_Roads_Available_Yes_No', 'N/A') }}</span><select class="editable" data-field="Internal_Roads_Available_Yes_No" style="display:none;"><option value="Yes" {% if info.get('Internal_Roads_Available_Yes_No') == 'Yes' %}selected{% endif %}>Yes</option><option value="No" {% if info.get('Internal_Roads_Available_Yes_No') == 'No' %}selected{% endif %}>No</option></select></td></tr>
+            </table>
+        </div>
+
+        <div class="flex mb-6">
+            <div class="w-3/4">
+                <div class="section-header">
+                    <span class="icon">👤</span> Incharge Details
+                    <button class="edit-btn" onclick="toggleEdit('incharge-details')">EDIT</button>
+                    <button class="save-btn" id="save-incharge-details" onclick="saveSection('incharge-details')" style="display:none;">SAVE</button>
+                    <button class="cancel-btn" id="cancel-incharge-details" onclick="cancelEdit('incharge-details')" style="display:none;">CANCEL</button>
+                </div>
+                <table class="table table-col-2" id="incharge-details">
+                    <tr><th>CFMS / Corporation EMP ID</th><td><span class="readonly" data-field="MLS_Point_Incharge_CFMS_Corporation_EMP_ID">{{ info.get('MLS_Point_Incharge_CFMS_Corporation_EMP_ID', 'N/A') }}</span><input type="text" class="editable" data-field="MLS_Point_Incharge_CFMS_Corporation_EMP_ID" value="{{ info.get('MLS_Point_Incharge_CFMS_Corporation_EMP_ID', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Name</th><td><span class="readonly" data-field="MLS_Point_Incharge_Name">{{ info.get('MLS_Point_Incharge_Name', 'N/A') }}</span><input type="text" class="editable" data-field="MLS_Point_Incharge_Name" value="{{ info.get('MLS_Point_Incharge_Name', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Designation</th><td><span class="readonly" data-field="Designation">{{ info.get('Designation', 'N/A') }}</span><input type="text" class="editable" data-field="Designation" value="{{ info.get('Designation', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Aadhaar Number</th><td class="text-right"><span class="readonly" data-field="Aadhaar_Number">{{ info.get('Aadhaar_Number', 'N/A') }}</span><input type="text" class="editable" data-field="Aadhaar_Number" value="{{ info.get('Aadhaar_Number', '') }}" style="display:none; width: 70%;"><button class="ekyc-btn">eKYC</button></td></tr>
+                    <tr><th>Phone Number</th><td class="text-right"><span class="readonly" data-field="Phone_Number">{{ info.get('Phone_Number', 'N/A') }}</span><input type="text" class="editable" data-field="Phone_Number" value="{{ info.get('Phone_Number', '') }}" style="display:none; width: 70%;"><button class="otp-btn">OTP</button></td></tr>
+                </table>
+            </div>
+            <div class="w-1/4 flex flex-col items-center justify-center pl-2">
+                <div class="photo-box h-full">
+                    <span id="incharge-photo-placeholder">MLS<br>Incharge<br>Photo</span>
+                    <img id="incharge-photo-img" src="{{ info.get('MLS_Point_Incharge_Photo', '') }}" style="display:{{ 'block' if info.get('MLS_Point_Incharge_Photo') else 'none' }};">
+                    <input type="file" class="photo-upload" accept="image/*" onchange="handlePhotoUpload(this, 'incharge')">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex mb-6">
+            <div class="w-3/4">
+                <div class="section-header">
+                    <span class="icon">🧑‍💼</span> DEO Details
+                    <button class="edit-btn" onclick="toggleEdit('deo-details')">EDIT</button>
+                    <button class="save-btn" id="save-deo-details" onclick="saveSection('deo-details')" style="display:none;">SAVE</button>
+                    <button class="cancel-btn" id="cancel-deo-details" onclick="cancelEdit('deo-details')" style="display:none;">CANCEL</button>
+                </div>
+                <table class="table table-col-2" id="deo-details">
+                    <tr><th>Corporation Emp ID</th><td><span class="readonly" data-field="DEO_CFMS_ID_Corporation_Emp_ID">{{ info.get('DEO_CFMS_ID_Corporation_Emp_ID', 'N/A') }}</span><input type="text" class="editable" data-field="DEO_CFMS_ID_Corporation_Emp_ID" value="{{ info.get('DEO_CFMS_ID_Corporation_Emp_ID', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Name</th><td><span class="readonly" data-field="DEO_Name">{{ info.get('DEO_Name', 'N/A') }}</span><input type="text" class="editable" data-field="DEO_Name" value="{{ info.get('DEO_Name', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Aadhaar Number</th><td class="text-right"><span class="readonly" data-field="AadhaarNumber">{{ info.get('AadhaarNumber', 'N/A') }}</span><input type="text" class="editable" data-field="AadhaarNumber" value="{{ info.get('AadhaarNumber', '') }}" style="display:none; width: 70%;"><button class="ekyc-btn">eKYC</button></td></tr>
+                    <tr><th>Phone Number</th><td class="text-right"><span class="readonly" data-field="DEO_Phone_Number">{{ info.get('DEO_Phone_Number', 'N/A') }}</span><input type="text" class="editable" data-field="DEO_Phone_Number" value="{{ info.get('DEO_Phone_Number', '') }}" style="display:none; width: 70%;"><button class="otp-btn">OTP</button></td></tr>
+                </table>
+            </div>
+            <div class="w-1/4 flex flex-col items-center justify-center pl-2">
+                <div class="photo-box h-full">
+                    <span id="deo-photo-placeholder">DEO<br>Photo</span>
+                    <img id="deo-photo-img" src="{{ info.get('DEO_Photo', '') }}" style="display:{{ 'block' if info.get('DEO_Photo') else 'none' }};">
+                    <input type="file" class="photo-upload" accept="image/*" onchange="handlePhotoUpload(this, 'deo')">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🏢</span> MLS Point Physical Details
+                <button class="edit-btn" onclick="toggleEdit('physical-details')">EDIT</button>
+                <button class="save-btn" id="save-physical-details" onclick="saveSection('physical-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-physical-details" onclick="cancelEdit('physical-details')" style="display:none;">CANCEL</button>
+            </div>
+            <table class="table table-col-7" id="physical-details">
+                <tr>
+                    <th>MLS / Block Name</th>
+                    <th>Dimensions</th>
+                    <th>Area in Sq. Ft.</th>
+                    <th>Storage Capacity in MTs</th>
+                    <th>Owned / Hired</th>
+                    <th>If rented, Private / AMC / Other</th>
+                    <th>Weighbridge Availability</th>
+                </tr>
+                <tr>
+                    <td><span class="readonly" data-field="Block_Name">{{ info.get('Block_Name', 'N/A') }}</span><input type="text" class="editable" data-field="Block_Name" value="{{ info.get('Block_Name', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Dimensions">{{ info.get('Dimensions', 'N/A') }}</span><input type="text" class="editable" data-field="Dimensions" value="{{ info.get('Dimensions', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Godown_Area_in_Sq_Ft">{{ info.get('Godown_Area_in_Sq_Ft', 'N/A') }}</span><input type="text" class="editable" data-field="Godown_Area_in_Sq_Ft" value="{{ info.get('Godown_Area_in_Sq_Ft', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Storage_Capacity_in">{{ info.get('Storage_Capacity_in', 'N/A') }}</span><input type="text" class="editable" data-field="Storage_Capacity_in" value="{{ info.get('Storage_Capacity_in', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="MLS_Point_Owned_or_Hired">{{ info.get('MLS_Point_Owned_or_Hired', 'N/A') }}</span><select class="editable" data-field="MLS_Point_Owned_or_Hired" style="display:none;"><option value="Owned" {% if info.get('MLS_Point_Owned_or_Hired') == 'Owned' %}selected{% endif %}>Owned</option><option value="Hired" {% if info.get('MLS_Point_Owned_or_Hired') == 'Hired' %}selected{% endif %}>Hired</option></select></td>
+                    <td><span class="readonly" data-field="If_Rented_Private_Amc_Other">{{ info.get('If_Rented_Private_Amc_Other', 'N/A') }}</span><select class="editable" data-field="If_Rented_Private_Amc_Other" style="display:none;"><option value="N/A" {% if info.get('If_Rented_Private_Amc_Other') == 'N/A' %}selected{% endif %}>N/A</option><option value="Private" {% if info.get('If_Rented_Private_Amc_Other') == 'Private' %}selected{% endif %}>Private</option><option value="AMC" {% if info.get('If_Rented_Private_Amc_Other') == 'AMC' %}selected{% endif %}>AMC</option><option value="Other" {% if info.get('If_Rented_Private_Amc_Other') == 'Other' %}selected{% endif %}>Other</option></select></td>
+                    <td><span class="readonly" data-field="Weighbridge_Available_Yes_No">{{ info.get('Weighbridge_Available_Yes_No', 'N/A') }}</span><select class="editable" data-field="Weighbridge_Available_Yes_No" style="display:none;"><option value="Yes" {% if info.get('Weighbridge_Available_Yes_No') == 'Yes' %}selected{% endif %}>Yes</option><option value="No" {% if info.get('Weighbridge_Available_Yes_No') == 'No' %}selected{% endif %}>No</option></select></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🏠</span> Hire / Rent Details
+                <button class="edit-btn" onclick="toggleEdit('rent-details')">EDIT</button>
+                <button class="save-btn" id="save-rent-details" onclick="saveSection('rent-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-rent-details" onclick="cancelEdit('rent-details')" style="display:none;">CANCEL</button>
+            </div>
+            <table class="table table-col-4" id="rent-details">
+                <tr>
+                    <th>Hired / Rented from</th>
+                    <th>Rental Period</th>
+                    <th>Rental Charges</th>
+                    <th>Actions</th>
+                </tr>
+                <tr>
+                    <td><span class="readonly" data-field="Hired_Rented_from">{{ info.get('Hired_Rented_from', 'N/A') }}</span><input type="text" class="editable" data-field="Hired_Rented_from" value="{{ info.get('Hired_Rented_from', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Rental_Period">{{ info.get('Rental_Period', 'N/A') }}</span><input type="text" class="editable" data-field="Rental_Period" value="{{ info.get('Rental_Period', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Rental_Charges">{{ info.get('Rental_Charges', 'N/A') }}</span><input type="text" class="editable" data-field="Rental_Charges" value="{{ info.get('Rental_Charges', '') }}" style="display:none;"></td>
+                    <td><button class="add-btn" onclick="addRentRow()"><i class="fas fa-plus"></i></button></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🖼</span> Location wise Image <span class="text-xs font-normal ml-2">(Upload images)</span>
+                <button class="upload-btn" onclick="triggerImageUpload('new-image-upload')">Upload Image</button>
+            </div>
+            <div class="image-grid" id="location-images-container">
+                </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">👷‍♂</span> Hamalies Details
+                <button class="edit-btn" onclick="toggleEdit('hamalies-details')">EDIT</button>
+                <button class="save-btn" id="save-hamalies-details" onclick="saveSection('hamalies-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-hamalies-details" onclick="cancelEdit('hamalies-details')" style="display:none;">CANCEL</button>
+            </div>
+            <table class="table table-col-4 rounded-lg" id="hamalies-details">
+                <tr>
+                    <th>Hamalies Engaged</th>
+                    <th>Rate per Quintal</th>
+                    <th>Rate per Carton Box</th>
+                    <th>Rate per Bale</th>
+                </tr>
+                <tr>
+                    <td><span class="readonly" data-field="Number_of_Hamalies_Working">{{ info.get('Number_of_Hamalies_Working', 'N/A') }}</span><input type="text" class="editable" data-field="Number_of_Hamalies_Working" value="{{ info.get('Number_of_Hamalies_Working', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Rate_per_Quintal">{{ info.get('Rate_per_Quintal', 'N/A') }}</span><input type="text" class="editable" data-field="Rate_per_Quintal" value="{{ info.get('Rate_per_Quintal', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Rate_per_Carton_Box">{{ info.get('Rate_per_Carton_Box', 'N/A') }}</span><input type="text" class="editable" data-field="Rate_per_Carton_Box" value="{{ info.get('Rate_per_Carton_Box', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Rate_per_Bale">{{ info.get('Rate_per_Bale', 'N/A') }}</span><input type="text" class="editable" data-field="Rate_per_Bale" value="{{ info.get('Rate_per_Bale', '') }}" style="display:none;"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🏗</span> Stage II Contractor Details
+                <button class="edit-btn" onclick="toggleEdit('contractor-details')">EDIT</button>
+                <button class="save-btn" id="save-contractor-details" onclick="saveSection('contractor-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-contractor-details" onclick="cancelEdit('contractor-details')" style="display:none;">CANCEL</button>
+            </div>
+            <div class="flex">
+                <div class="w-3/4">
+                    <table class="table table-col-2 rounded-lg" id="contractor-details">
+                        <tr><th>Engaged Firm Name</th><td><span class="readonly" data-field="Engaged_Firm_Name">{{ info.get('Engaged_Firm_Name', 'N/A') }}</span><input type="text" class="editable" data-field="Engaged_Firm_Name" value="{{ info.get('Engaged_Firm_Name', '') }}" style="display:none;"></td></tr>
+                        <tr><th>PAN / GST Details</th><td><span class="readonly" data-field="PAN_GST_Details">{{ info.get('PAN_GST_Details', 'N/A') }}</span><input type="text" class="editable" data-field="PAN_GST_Details" value="{{ info.get('PAN_GST_Details', '') }}" style="display:none;"></td></tr>
+                        <tr><th>Owner / Authorised Person Name</th><td><span class="readonly" data-field="Owner_Authorised_Person_Name">{{ info.get('Owner_Authorised_Person_Name', 'N/A') }}</span><input type="text" class="editable" data-field="Owner_Authorised_Person_Name" value="{{ info.get('Owner_Authorised_Person_Name', '') }}" style="display:none;"></td></tr>
+                        <tr><th>Owner / Authorised Aadhaar Number</th><td class="text-right"><span class="readonly" data-field="Owner_Authorised_Aadhaar_Number">{{ info.get('Owner_Authorised_Aadhaar_Number', 'N/A') }}</span><input type="text" class="editable" data-field="Owner_Authorised_Aadhaar_Number" value="{{ info.get('Owner_Authorised_Aadhaar_Number', '') }}" style="display:none; width: 70%;"><button class="ekyc-btn">eKYC</button></td></tr>
+                        <tr><th>Contact Phone Number</th><td class="text-right"><span class="readonly" data-field="Contractor_Phone_Number">{{ info.get('Contractor_Phone_Number', 'N/A') }}</span><input type="text" class="editable" data-field="Contractor_Phone_Number" value="{{ info.get('Contractor_Phone_Number', '') }}" style="display:none; width: 70%;"><button class="otp-btn">OTP</button></td></tr>
+                        <tr><th>Approved Rate Per Quintal</th><td><span class="readonly" data-field="Approved_Rate_Per_Quintal">{{ info.get('Approved_Rate_Per_Quintal', 'N/A') }}</span><input type="text" class="editable" data-field="Approved_Rate_Per_Quintal" value="{{ info.get('Approved_Rate_Per_Quintal', '') }}" style="display:none;"></td></tr>
+                    </table>
+                </div>
+                <div class="w-1/4 flex flex-col items-center justify-center">
+                    <div class="photo-box h-full">
+                        <span id="contractor-photo-placeholder">Owner /<br>Authorised<br>Person<br>Photo</span>
+                        <img id="contractor-photo-img" src="{{ info.get('Contractor_Photo', '') }}" style="display:{{ 'block' if info.get('Contractor_Photo') else 'none' }};">
+                        <input type="file" class="photo-upload" accept="image/*" onchange="handlePhotoUpload(this, 'contractor')">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🚚</span> Stage II Vehicle Details
+                <button class="edit-btn" onclick="toggleEdit('vehicle-details')">EDIT</button>
+                <button class="save-btn" id="save-vehicle-details" onclick="saveSection('vehicle-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-vehicle-details" onclick="cancelEdit('vehicle-details')" style="display:none;">CANCEL</button>
+            </div>
+            <table class="table table-col-4 rounded-lg" id="vehicle-details">
+                <tr>
+                    <th>Vehicles Engaged</th>
+                    <th>Own Vehicles Engaged</th>
+                    <th>Hired vehicles Engaged</th>
+                    <th>GPS Fitted Vehicles</th>
+                </tr>
+                <tr>
+                    <td><span class="readonly" data-field="Number_of_Vehicles_Working">{{ info.get('Number_of_Vehicles_Working', 'N/A') }}</span><input type="text" class="editable" data-field="Number_of_Vehicles_Working" value="{{ info.get('Number_of_Vehicles_Working', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Number_of_Stage_II_Vehicles_Registered">{{ info.get('Number_of_Stage_II_Vehicles_Registered', 'N/A') }}</span><input type="text" class="editable" data-field="Number_of_Stage_II_Vehicles_Registered" value="{{ info.get('Number_of_Stage_II_Vehicles_Registered', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Hired_Vehicles_Engaged">{{ info.get('Hired_Vehicles_Engaged', 'N/A') }}</span><input type="text" class="editable" data-field="Hired_Vehicles_Engaged" value="{{ info.get('Hired_Vehicles_Engaged', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="All_Vehicles_Having_GPS_Devices_Yes_No">{{ info.get('All_Vehicles_Having_GPS_Devices_Yes_No', 'N/A') }}</span><input type="text" class="editable" data-field="All_Vehicles_Having_GPS_Devices_Yes_No" value="{{ info.get('All_Vehicles_Having_GPS_Devices_Yes_No', '') }}" style="display:none;"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">📦</span> Current Month Commodity Details
+                <button class="edit-btn" onclick="toggleEdit('commodity-details')">EDIT</button>
+                <button class="save-btn" id="save-commodity-details" onclick="saveSection('commodity-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-commodity-details" onclick="cancelEdit('commodity-details')" style="display:none;">CANCEL</button>
+            </div>
+            <p class="text-center text-gray-500 py-4">Commodity details will be fetched dynamically from the database.</p>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🏬</span> Past Six months Stock Movement Details
+                <button class="edit-btn" onclick="toggleEdit('stock-movement')">EDIT</button>
+                <button class="save-btn" id="save-stock-movement" onclick="saveSection('stock-movement')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-stock-movement" onclick="cancelEdit('stock-movement')" style="display:none;">CANCEL</button>
+            </div>
+            <p class="text-center text-gray-500 py-4">Stock movement details will be fetched dynamically from the database.</p>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">📷</span> CC Cameras Details
+                <button class="edit-btn" onclick="toggleEdit('camera-details')">EDIT</button>
+                <button class="save-btn" id="save-camera-details" onclick="saveSection('camera-details')" style="display:none;">SAVE</button>
+                <button class="cancel-btn" id="cancel-camera-details" onclick="cancelEdit('camera-details')" style="display:none;">CANCEL</button>
+            </div>
+            <table class="table table-col-4 rounded-lg" id="camera-details">
+                <tr>
+                    <th>Cameras Maintenance Vendor</th>
+                    <th>CC Cameras installed</th>
+                    <th>Cameras with Live Feed</th>
+                    <th>Actions</th>
+                </tr>
+                <tr>
+                    <td><span class="readonly" data-field="CC_Cameras_are_maintained_by_Vendor">{{ info.get('CC_Cameras_are_maintained_by_Vendor', 'N/A') }}</span><input type="text" class="editable" data-field="CC_Cameras_are_maintained_by_Vendor" value="{{ info.get('CC_Cameras_are_maintained_by_Vendor', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="No_of_CC_Camers_installed">{{ info.get('No_of_CC_Camers_installed', 'N/A') }}</span><input type="text" class="editable" data-field="No_of_CC_Camers_installed" value="{{ info.get('No_of_CC_Camers_installed', '') }}" style="display:none;"></td>
+                    <td><span class="readonly" data-field="Whether_all_Cameras_are_in_working_condition_Yes_No">{{ info.get('Whether_all_Cameras_are_in_working_condition_Yes_No', 'N/A') }}</span><input type="text" class="editable" data-field="Whether_all_Cameras_are_in_working_condition_Yes_No" value="{{ info.get('Whether_all_Cameras_are_in_working_condition_Yes_No', '') }}" style="display:none;"></td>
+                    <td><button class="add-btn" onclick="addCameraBlock()"><i class="fas fa-plus"></i> Add Block</button></td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="camera-blocks">
+            <div class="camera-block mb-4" data-block="1">
+                <div class="section-header">
+                    <span class="icon">🏢</span> Block A - Main Storage
+                    <button class="edit-btn" onclick="removeCameraBlock(1)" style="background: #dc3545; color: white; border-color: #dc3545;">Remove</button>
+                </div>
+                <table class="table table-col-2 rounded-lg">
+                    <tr><th>Camera 1 Location</th><td><span class="readonly" data-field="Camera_1_Location">{{ info.get('Camera_1_Location', 'N/A') }}</span><input type="text" class="editable" data-field="Camera_1_Location" value="{{ info.get('Camera_1_Location', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Camera 1 IP Address</th><td><span class="readonly" data-field="Camera_1_IP_Address">{{ info.get('Camera_1_IP_Address', 'N/A') }}</span><input type="text" class="editable" data-field="Camera_1_IP_Address" value="{{ info.get('Camera_1_IP_Address', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Camera 2 Location</th><td><span class="readonly" data-field="Camera_2_Location">{{ info.get('Camera_2_Location', 'N/A') }}</span><input type="text" class="editable" data-field="Camera_2_Location" value="{{ info.get('Camera_2_Location', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Camera 2 IP Address</th><td><span class="readonly" data-field="Camera_2_IP_Address">{{ info.get('Camera_2_IP_Address', 'N/A') }}</span><input type="text" class="editable" data-field="Camera_2_IP_Address" value="{{ info.get('Camera_2_IP_Address', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Camera 3 Location</th><td><span class="readonly" data-field="Camera_3_Location">{{ info.get('Camera_3_Location', 'N/A') }}</span><input type="text" class="editable" data-field="Camera_3_Location" value="{{ info.get('Camera_3_Location', '') }}" style="display:none;"></td></tr>
+                    <tr><th>Camera 3 IP Address</th><td><span class="readonly" data-field="Camera_3_IP_Address">{{ info.get('Camera_3_IP_Address', 'N/A') }}</span><input type="text" class="editable" data-field="Camera_3_IP_Address" value="{{ info.get('Camera_3_IP_Address', '') }}" style="display:none;"></td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="section-header">
+                <span class="icon">🗺</span> Layout of MLS Point / Block
+                <button class="upload-btn" onclick="triggerLayoutUpload()">Upload Layout</button>
+            </div>
+            <div class="border border-gray-300 h-96 flex items-center justify-center bg-gray-50 rounded">
+                <div id="layout-placeholder" class="text-center text-gray-500" style="display:{{ 'none' if info.get('Layout_Image') else 'block' }}">
+                    <i class="fas fa-upload text-4xl mb-4"></i>
+                    <p>Click "Upload Layout" to add the MLS point layout diagram</p>
+                    <p class="text-sm">Supported formats: PNG, JPG, PDF</p>
+                </div>
+                <img id="layout-image" src="{{ info.get('Layout_Image', '') }}" style="display:{{ 'block' if info.get('Layout_Image') else 'none' }}; max-width:100%; max-height:100%;">
+                <input type="file" id="layout-upload" accept="image/*,.pdf" style="display:none;" onchange="handleLayoutUpload(this)">
+            </div>
+        </div>
     </div>
 
-    <div class="global-actions">
-        <button id="save-all-btn" class="btn-global btn-save-all hidden">Save All Changes</button>
-        <button id="cancel-all-btn" class="btn-global btn-cancel-all hidden">Cancel All Changes</button>
-        <a class="btn-back" href="{{ url_for('index') }}">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            Back to Overview
-        </a>
-    </div>
-</div>
+    <script>
+        const mlsPointCode = "{{ info.get('MLS_Point_Code', 'N/A') }}";
+        let originalData = {};
+        let cameraBlockCounter = 1;
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("DEBUG: JavaScript is running on details page!"); 
+        function showMessage(message, type = 'success') {
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
 
-        const detailsPanel = document.querySelector('.details-panel');
-        const mlsPointCode = detailsPanel ? detailsPanel.dataset.mlsCode : null;
-        const messageArea = document.getElementById('message-area');
-        const saveAllBtn = document.getElementById('save-all-btn');
-        const cancelAllBtn = document.getElementById('cancel-all-btn');
-
-        // Map to store original values and track changes: {columnName: {element: spanElement, inputElement: inputElement, originalValue: '...', isChanged: true/false}}
-        const changedFields = new Map();
-
-        function showMessage(message, type) {
-            messageArea.textContent = message;
-            messageArea.className = `message ${type}`;
-            messageArea.style.display = 'block';
-            setTimeout(() => {
-                messageArea.style.display = 'none';
-            }, 5000);
-        }
-
-        function updateGlobalButtonsVisibility() {
-            // Check if any field's isChanged flag is true
-            const hasPendingChanges = Array.from(changedFields.values()).some(field => field.isChanged);
-            if (hasPendingChanges) {
-                saveAllBtn.classList.remove('hidden');
-                cancelAllBtn.classList.remove('hidden');
+            if (type === 'success') {
+                successMsg.textContent = message;
+                successMsg.style.display = 'block';
+                errorMsg.style.display = 'none';
+                setTimeout(() => successMsg.style.display = 'none', 3000);
             } else {
-                saveAllBtn.classList.add('hidden');
-                cancelAllBtn.classList.add('hidden');
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+                setTimeout(() => errorMsg.style.display = 'none', 5000);
             }
         }
 
-        document.querySelectorAll('.detail-item').forEach(item => {
-            const column = item.dataset.column;
-            const detailValueSpan = item.querySelector('.detail-value');
-            const detailInput = item.querySelector('.detail-input');
-            const editBtn = item.querySelector('.btn-edit');
-            const saveFieldBtn = item.querySelector('.btn-save-field');
-            const cancelFieldBtn = item.querySelector('.btn-cancel-field');
-
-            // Only proceed if this is an editable field
-            if (!detailValueSpan || !detailInput || !editBtn) {
-                return;
-            }
-
-            console.log("DEBUG: Found editable element for column:", column);
+        function toggleEdit(sectionId) {
+            const section = document.getElementById(sectionId);
+            const editBtn = section.parentElement.querySelector('.edit-btn');
+            const saveBtn = section.parentElement.querySelector('.save-btn');
+            const cancelBtn = section.parentElement.querySelector('.cancel-btn');
             
-            // Initial original value from the span's data attribute
-            const originalValue = detailValueSpan.dataset.originalValue; 
+            originalData[sectionId] = {};
+            section.querySelectorAll('.readonly').forEach(el => {
+                const field = el.getAttribute('data-field');
+                originalData[sectionId][field] = el.textContent;
+                el.style.display = 'none';
+            });
+            section.querySelectorAll('.editable').forEach(el => {
+                el.style.display = 'inline-block';
+            });
+            
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+        }
 
-            // Function to reset a single field's UI to view mode
-            const resetFieldToViewMode = (col) => {
-                const fieldData = changedFields.get(col);
-                if (fieldData) {
-                    fieldData.inputElement.classList.add('hidden');
-                    fieldData.element.classList.remove('hidden');
-                    fieldData.inputElement.closest('.detail-item').querySelector('.btn-save-field').classList.add('hidden');
-                    fieldData.inputElement.closest('.detail-item').querySelector('.btn-cancel-field').classList.add('hidden');
-                    fieldData.inputElement.closest('.detail-item').querySelector('.btn-edit').classList.remove('hidden');
-                }
-            };
+        async function saveSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const editBtn = section.parentElement.querySelector('.edit-btn');
+            const saveBtn = section.parentElement.querySelector('.save-btn');
+            const cancelBtn = section.parentElement.querySelector('.cancel-btn');
 
-            editBtn.addEventListener('click', () => {
-                detailValueSpan.classList.add('hidden');
-                detailInput.classList.remove('hidden');
-                editBtn.classList.add('hidden');
-                saveFieldBtn.classList.remove('hidden');
-                cancelFieldBtn.classList.remove('hidden');
-                detailInput.focus();
+            let updates = {};
+            section.querySelectorAll('.editable').forEach(el => {
+                const field = el.getAttribute('data-field');
+                const value = el.value;
+                updates[field] = value;
+            });
 
-                // Determine input type based on column name for better user experience
-                if (column.includes('Latitude') || column.includes('Longitude') || column.includes('Capacity') || column.includes('Code') || column === 'S_No') {
-                    detailInput.type = 'number';
-                    detailInput.step = 'any'; // Allow decimal numbers for lat/lon
-                } else if (column.includes('Contact_Number')) {
-                    detailInput.type = 'tel'; // For telephone numbers
-                } else if (column.includes('Email_ID')) {
-                    detailInput.type = 'email';
-                } else {
-                    detailInput.type = 'text'; // Default to text
-                }
+            const updatePromises = Object.entries(updates).map(([column, value]) => {
+                return fetch('/update_mls_data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ MLS_Point_Code: mlsPointCode, column: column, value: value })
+                }).then(response => response.json());
+            });
 
-                // Add to changedFields map if not already there, initialized as not changed
-                if (!changedFields.has(column)) {
-                    changedFields.set(column, {
-                        element: detailValueSpan,
-                        inputElement: detailInput,
-                        originalValue: originalValue,
-                        isChanged: false 
+            try {
+                const results = await Promise.all(updatePromises);
+                const allSuccessful = results.every(result => result.success);
+
+                if (allSuccessful) {
+                    showMessage("Data saved successfully!");
+                    Object.entries(updates).forEach(([field, value]) => {
+                        const readonlyEl = section.querySelector(`.readonly[data-field="${field}"]`);
+                        if (readonlyEl) readonlyEl.textContent = value;
                     });
-                }
-                updateGlobalButtonsVisibility();
-            });
-
-            // Function to save a single field
-            const saveField = async (col, newVal, element, inputElem) => {
-                // Client-side validation
-                if (inputElem.type === 'number' && newVal !== '' && isNaN(parseFloat(newVal))) {
-                    showMessage(`Invalid input for ${col}. Please enter a number.`, 'error');
-                    // Do not revert inputElem.value here, allow user to correct
-                    return false;
-                }
-                if (inputElem.type === 'email' && newVal !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newVal)) {
-                    showMessage(`Invalid email format for ${col}.`, 'error');
-                     // Do not revert inputElem.value here, allow user to correct
-                    return false;
-                }
-
-                try {
-                    const response = await fetch('/update_mls_data', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            MLS_Point_Code: mlsPointCode,
-                            column: col,
-                            value: newVal
-                        })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        showMessage(`${col} updated successfully!`, 'success');
-                        element.textContent = newVal; // Update displayed value
-                        element.dataset.originalValue = newVal; // Update original value for future edits
-                        return true;
-                    } else {
-                        showMessage(`Error updating ${col}: ${result.message}`, 'error');
-                        return false;
-                    }
-                } catch (error) {
-                    showMessage(`Network error updating ${col}.`, 'error');
-                    console.error('Fetch error for column', col, ':', error);
-                    return false;
-                }
-            };
-
-            saveFieldBtn.addEventListener('click', async () => {
-                const newValue = detailInput.value.trim();
-                const success = await saveField(column, newValue, detailValueSpan, detailInput);
-                if (success) {
-                    resetFieldToViewMode(column);
-                    changedFields.delete(column); // Remove from changed fields
-                    updateGlobalButtonsVisibility();
                 } else {
-                    // If save failed, keep input visible for correction
+                    const firstError = results.find(result => !result.success);
+                    showMessage(firstError.message || "An error occurred during save.", 'error');
                 }
-            });
-
-            cancelFieldBtn.addEventListener('click', () => {
-                detailInput.value = originalValue; // Revert input value to the initial original value
-                detailValueSpan.textContent = originalValue; // Revert span text
-                resetFieldToViewMode(column);
-                changedFields.delete(column); // Remove from changed fields
-                updateGlobalButtonsVisibility();
-            });
-
-            // Track changes for global save/cancel
-            detailInput.addEventListener('input', () => {
-                const currentFieldData = changedFields.get(column);
-                if (currentFieldData) {
-                    currentFieldData.isChanged = (detailInput.value.trim() !== currentFieldData.originalValue);
-                    if (currentFieldData.isChanged) {
-                        changedFields.set(column, currentFieldData); // Update if changed
-                    } else {
-                        changedFields.delete(column); // Remove if reverted to original
-                    }
-                } else {
-                    // This case handles input where edit button wasn't clicked first (shouldn't happen with current UI)
-                    // If it somehow gets here, ensure it's tracked if value differs from original
-                    const initialVal = detailValueSpan.dataset.originalValue;
-                    if (detailInput.value.trim() !== initialVal) {
-                        changedFields.set(column, {
-                            element: detailValueSpan,
-                            inputElement: detailInput,
-                            originalValue: initialVal,
-                            isChanged: true
-                        });
-                    }
-                }
-                updateGlobalButtonsVisibility();
-            });
-        });
-
-        // Global Save All Changes
-        saveAllBtn.addEventListener('click', async () => {
-            showMessage('Saving all changes...', 'info');
-            let allSuccess = true;
-            // Iterate over a copy of changedFields because saveField might modify it (delete on success)
-            for (let [column, fieldData] of Array.from(changedFields.entries())) { 
-                if (fieldData.isChanged) { // Only save if value is actually different from its original
-                    const success = await saveField(column, fieldData.inputElement.value.trim(), fieldData.element, fieldData.inputElement);
-                    if (!success) {
-                        allSuccess = false;
-                        // If a field save fails, we don't automatically reset its UI,
-                        // keeping it in edit mode for user to correct.
-                    } else {
-                        // If successfully saved, ensure its UI is reset and it's removed from changedFields
-                        resetFieldToViewMode(column);
-                        changedFields.delete(column);
-                    }
-                } else {
-                    // If not actually changed, but somehow still in map, just reset UI
-                    resetFieldToViewMode(column);
-                    changedFields.delete(column);
-                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Network error or server unavailable.', 'error');
+            } finally {
+                section.querySelectorAll('.readonly').forEach(el => el.style.display = 'inline');
+                section.querySelectorAll('.editable').forEach(el => el.style.display = 'none');
+                editBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
             }
-            updateGlobalButtonsVisibility(); // Re-evaluate after loop
-            if (allSuccess) {
-                showMessage('All eligible changes saved successfully!', 'success');
+        }
+
+        function cancelEdit(sectionId) {
+            const section = document.getElementById(sectionId);
+            const editBtn = section.parentElement.querySelector('.edit-btn');
+            const saveBtn = section.parentElement.querySelector('.save-btn');
+            const cancelBtn = section.parentElement.querySelector('.cancel-btn');
+
+            if (originalData[sectionId]) {
+                Object.keys(originalData[sectionId]).forEach(field => {
+                    const editableEl = section.querySelector(`.editable[data-field="${field}"]`);
+                    if (editableEl) {
+                        editableEl.value = originalData[sectionId][field];
+                    }
+                });
+            }
+
+            section.querySelectorAll('.readonly').forEach(el => el.style.display = 'inline');
+            section.querySelectorAll('.editable').forEach(el => el.style.display = 'none');
+            
+            editBtn.style.display = 'inline-block';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+        }
+
+        function fetchLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async function(position) {
+                    const startLat = position.coords.latitude;
+                    const startLng = position.coords.longitude;
+                    
+                    const endLat = "{{ info.get('MLS_Point_Latitude', '') }}";
+                    const endLng = "{{ info.get('MLS_Point_Logitude', '') }}";
+
+                    if (endLat && endLng) {
+                        const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${startLat},${startLng}&destination=${endLat},${endLng}`;
+                        window.open(mapsUrl, '_blank');
+                        showMessage('Opening Google Maps with directions!', 'success');
+                    } else {
+                        showMessage('MLS Point coordinates are not available in the database.', 'error');
+                    }
+                }, function(error) {
+                    showMessage('Unable to retrieve your current location: ' + error.message, 'error');
+                });
             } else {
-                showMessage('Some changes could not be saved. Please check the specific fields.', 'error');
+                showMessage('Geolocation is not supported by this browser.', 'error');
             }
-        });
-
-        // Global Cancel All Changes
-        cancelAllBtn.addEventListener('click', () => {
-            showMessage('Cancelling all changes...', 'info');
-            for (let [column, fieldData] of Array.from(changedFields.entries())) { // Iterate over a copy
-                fieldData.inputElement.value = fieldData.originalValue; // Revert input value
-                fieldData.element.textContent = fieldData.originalValue; // Revert span text
-                resetFieldToViewMode(column); // Reset UI to view mode
+        }
+        
+        function handlePhotoUpload(input, type) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(`${type}-photo-img`);
+                    const placeholder = document.getElementById(`${type}-photo-placeholder`);
+                    
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    showMessage('Photo uploaded. Remember to save the section to make it permanent!', 'success');
+                };
+                reader.readAsDataURL(file);
             }
-            changedFields.clear(); // Clear all tracked changes
-            updateGlobalButtonsVisibility();
-            showMessage('All changes cancelled.', 'info');
-        });
+        }
 
-        updateGlobalButtonsVisibility(); // Initial check on load
-    });
-</script>
+        function triggerImageUpload() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const container = document.getElementById('location-images-container');
+                        const imgBox = document.createElement('div');
+                        imgBox.className = 'image-upload-box';
+                        imgBox.innerHTML = `<img src="${e.target.result}" alt="Location Image"><span class="absolute top-1 right-1 text-red-500 cursor-pointer"><i class="fas fa-times"></i></span>`;
+                        imgBox.querySelector('span').addEventListener('click', () => imgBox.remove());
+                        container.appendChild(imgBox);
+                        showMessage('Image uploaded. Please save the changes to make it permanent!', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        document.querySelectorAll('.ekyc-btn').forEach(btn => btn.addEventListener('click', () => alert('eKYC verification initiated.')));
+        document.querySelectorAll('.otp-btn').forEach(btn => btn.addEventListener('click', () => alert('OTP sent to phone number.')));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const backButton = document.createElement('a');
+            backButton.href = "{{ url_for('index') }}";
+            backButton.className = "edit-btn";
+            backButton.textContent = "Back to Dashboard";
+            document.querySelector('.container').prepend(backButton);
+        });
+    </script>
 </body>
 </html>
